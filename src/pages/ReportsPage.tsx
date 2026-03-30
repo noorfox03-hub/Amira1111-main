@@ -126,22 +126,22 @@ function WarehouseReportSection({
       </div>
 
       {/* Stats Summaries */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print-grid-cols-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:grid-cols-3">
         <Card className="bg-primary/5 border-primary/20 shadow-none print:border-none">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground font-bold">إجمالي تكلفة الاستهلاك</p>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">إجمالي تكلفة الاستهلاك</p>
             <p className="text-xl font-black text-primary">{totalMonthlySpend.toLocaleString()} ريال</p>
           </CardContent>
         </Card>
         <Card className="bg-success/5 border-success/20 shadow-none print:border-none">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground font-bold">أصناف تم سحبها</p>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">أصناف تم سحبها</p>
             <p className="text-xl font-black text-success">{itemReport.filter(r => r.dispensed > 0).length} صنف</p>
           </CardContent>
         </Card>
         <Card className="bg-accent/5 border-accent/20 shadow-none print:border-none">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground font-bold">تنبيهات المخزون</p>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">تنبيهات المخزون</p>
             <p className="text-xl font-black text-accent">{itemReport.filter(r => r.currentStock <= r.item.minLimit).length} صنف منخفض</p>
           </CardContent>
         </Card>
@@ -153,48 +153,50 @@ function WarehouseReportSection({
           <CardTitle className="text-lg">ملخص الاستهلاك والأسعار</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="text-center font-bold py-2">الصنف</TableHead>
-                <TableHead className="text-center font-bold">الرصيد</TableHead>
-                <TableHead className="text-center font-bold">المصروف</TableHead>
-                <TableHead className="text-center font-bold">المضاف</TableHead>
-                <TableHead className="text-center font-bold text-sky-600">تكلفة الاستهلاك</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {itemReport.map((report) => (
-                <React.Fragment key={report.item.id}>
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell className="font-bold text-center">{report.item.name}</TableCell>
-                    <TableCell className="text-center">{report.currentStock} {report.item.unitType === 'box' ? 'علبة' : 'قطعة'}</TableCell>
-                    <TableCell className="text-center text-destructive font-bold">{report.dispensed}</TableCell>
-                    <TableCell className="text-center text-success font-bold">{report.added}</TableCell>
-                    <TableCell className="text-center text-primary font-bold">{(report.totalCost).toLocaleString()} ريال</TableCell>
-                  </TableRow>
-                  {report.consumptionByClinic.length > 0 && (
-                    <TableRow className="bg-muted/30">
-                      <TableCell colSpan={5} className="py-2 px-4">
-                        <div className="flex flex-wrap gap-4 text-xs">
-                          <span className="font-bold text-muted-foreground italic">تفاصيل السحب:</span>
-                          {report.consumptionByClinic.map(c => (
-                            <span key={c.name} className="bg-white border rounded-full px-3 py-1 shadow-sm">
-                              {c.name}: <span className="text-primary font-bold">{c.amount}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell>
+          <div className="table-responsive">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="text-right font-bold py-2 px-4 min-w-[180px]">الصنف</TableHead>
+                  <TableHead className="text-center font-bold px-2">الرصيد</TableHead>
+                  <TableHead className="text-center font-bold px-2">المصروف</TableHead>
+                  <TableHead className="text-center font-bold px-2">المضاف</TableHead>
+                  <TableHead className="text-center font-bold text-sky-600 px-4">تكلفة الاستهلاك</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {itemReport.map((report) => (
+                  <React.Fragment key={report.item.id}>
+                    <TableRow className="hover:bg-transparent border-b">
+                      <TableCell className="font-bold text-right py-3 px-4">{report.item.name}</TableCell>
+                      <TableCell className="text-center">{report.currentStock} {report.item.unitType === 'box' ? 'علبة' : 'قطعة'}</TableCell>
+                      <TableCell className="text-center text-destructive font-bold">{report.dispensed}</TableCell>
+                      <TableCell className="text-center text-success font-bold">{report.added}</TableCell>
+                      <TableCell className="text-center text-primary font-bold">{(report.totalCost).toLocaleString()} ريال</TableCell>
                     </TableRow>
-                  )}
-                </React.Fragment>
-              ))}
-              <TableRow className="bg-slate-50 font-black border-t-2">
-                <TableCell colSpan={4} className="py-4 text-md text-center">إجمالي تكلفة استهلاك {warehouse.name}:</TableCell>
-                <TableCell className="text-center text-lg text-sky-600">{totalMonthlySpend.toLocaleString()} ريال</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+                    {report.consumptionByClinic.length > 0 && (
+                      <TableRow className="bg-muted/10 print:bg-transparent">
+                        <TableCell colSpan={5} className="py-2 px-6">
+                          <div className="flex flex-wrap gap-2 text-[10px] md:text-xs">
+                            <span className="font-bold text-muted-foreground italic">تفاصيل السحب:</span>
+                            {report.consumptionByClinic.map(c => (
+                              <span key={c.name} className="bg-white border rounded-full px-2 py-0.5 shadow-sm print:shadow-none print:border-none">
+                                {c.name}: <span className="text-primary font-bold">{c.amount}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+                <TableRow className="bg-slate-50 font-black border-t-2 print:bg-slate-100">
+                  <TableCell colSpan={4} className="py-4 text-md text-left px-6 border-l">إجمالي تكلفة استهلاك {warehouse.name}:</TableCell>
+                  <TableCell className="text-center text-lg text-sky-600">{totalMonthlySpend.toLocaleString()} ريال</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -202,36 +204,54 @@ function WarehouseReportSection({
       <Card className="shadow-none border-t-2 print:mt-4">
         <CardHeader className="p-4"><CardTitle className="text-md flex items-center gap-2">تتبع الحركة اليومية</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow className="text-[11px]">
-                <TableHead className="text-center py-1">التاريخ</TableHead>
-                <TableHead className="text-center">العملية</TableHead>
-                <TableHead className="text-center">الصنف</TableHead>
-                <TableHead className="text-center">الكمية</TableHead>
-                <TableHead className="text-center">التكلفة</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransactions
-                .map((t) => {
-                  const item = items.find(i => i.id === t.itemId);
-                  return (
-                    <TableRow key={t.id} className="text-[11px]">
-                      <TableCell className="text-center">{new Date(t.timestamp).toLocaleString('ar-EG', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant={t.type === 'dispense' ? 'destructive' : 'outline'} className="text-[10px] px-1 py-0 h-4 mx-auto">
-                          {t.type === 'dispense' ? 'صرف' : t.type === 'add' ? 'إضافة' : 'تحويل'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-bold text-center">{item?.name}</TableCell>
-                      <TableCell className="text-center">{t.quantity}</TableCell>
-                      <TableCell className="text-center font-bold">{t.totalPrice > 0 ? t.totalPrice : '--'}</TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
+          <div className="table-responsive">
+            {filteredTransactions.length > 0 ? (
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="text-[11px]">
+                    <TableHead className="text-center py-1 px-2 whitespace-nowrap">التاريخ</TableHead>
+                    <TableHead className="text-center px-1">العملية</TableHead>
+                    <TableHead className="text-right px-4 min-w-[150px]">الصنف</TableHead>
+                    <TableHead className="text-center px-2">الكمية</TableHead>
+                    <TableHead className="text-center px-2">التكلفة</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions
+                    .map((t) => {
+                      const item = items.find(i => i.id === t.itemId);
+                      return (
+                        <TableRow key={t.id} className="text-[11px] border-b hover:bg-muted/20 transition-colors">
+                          <TableCell className="text-center whitespace-nowrap px-2 font-medium">{new Date(t.timestamp).toLocaleString('ar-EG', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge 
+                              variant={t.type === 'dispense' ? 'destructive' : t.type === 'add' ? 'success' : 'outline'} 
+                              className={cn(
+                                "text-[9px] px-2 py-0.5 h-auto mx-auto border-none shadow-sm",
+                                t.type === 'add' && "bg-emerald-500 text-white hover:bg-emerald-600",
+                                t.type === 'transfer' && "bg-sky-500 text-white hover:bg-sky-600",
+                                t.type === 'dispense' && "bg-rose-500 text-white hover:bg-rose-600"
+                              )}
+                            >
+                              {t.type === 'dispense' ? 'صرف' : t.type === 'add' ? 'إضافة' : 'تحويل'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-black text-right px-4 text-slate-700">{item?.name}</TableCell>
+                          <TableCell className="text-center px-2 font-bold">{t.quantity}</TableCell>
+                          <TableCell className="text-center font-black px-2 text-primary">{t.totalPrice > 0 ? `${t.totalPrice.toLocaleString()} ريال` : '--'}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="py-12 flex flex-col items-center justify-center text-muted-foreground bg-slate-50/50">
+                <RotateCcw className="w-10 h-10 mb-2 opacity-20" />
+                <p className="text-sm font-bold">لا توجد حركات مسجلة لهذه العيادة خلال شهر {selectedDate}</p>
+                <p className="text-xs opacity-60">تظهر هنا سجلات الصرف والإضافة عند تنفيذها</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -257,6 +277,36 @@ export default function ReportsPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM'));
   const [isComprehensive, setIsComprehensive] = useState(false);
 
+  // حساب الإجماليات مسبقاً لتحسين الأداء
+  const grandSummary = useMemo(() => {
+    const warehouseTotals = warehouses.map(wh => {
+      const whId = wh.id;
+      const whTotal = items.reduce((sum, item) => {
+        const itemTransactions = transactions.filter(t => {
+          const txDate = new Date(t.timestamp);
+          const [selYear, selMonth] = selectedDate.split('-').map(Number);
+          return (t.fromWarehouseId === whId || t.toWarehouseId === whId) &&
+            t.itemId === item.id &&
+            txDate.getFullYear() === selYear &&
+            (txDate.getMonth() + 1) === selMonth;
+        });
+
+        const dispensed = itemTransactions
+          .filter(t =>
+            (t.type === 'dispense' && t.fromWarehouseId === whId) ||
+            (whId === 'main' && t.type === 'transfer' && t.fromWarehouseId === 'main')
+          )
+          .reduce((acc, t) => acc + t.quantity, 0);
+
+        return sum + (dispensed * (item.salePrice || 0));
+      }, 0);
+      return { id: whId, total: whTotal };
+    });
+
+    const totalCost = warehouseTotals.reduce((sum, w) => sum + w.total, 0);
+    return { warehouseTotals, totalCost };
+  }, [warehouses, items, transactions, selectedDate]);
+
   const handleResetTransactions = async () => {
     try {
       const { resetTransactions } = useInventoryStore.getState();
@@ -269,34 +319,22 @@ export default function ReportsPage() {
   };
 
   const handlePrintComprehensive = () => {
-    // خدعة المبرمجين: تغيير الـ Viewport مؤقتاً لخدعة متصفح الموبايل
-    const viewport = document.querySelector('meta[name="viewport"]');
-    const originalContent = viewport?.getAttribute('content');
-
-    // إجبار الموبايل على رؤية الصفحة كـ Desktop
-    viewport?.setAttribute('content', 'width=1024');
-
     document.body.classList.add('is-printing-comprehensive');
     setIsComprehensive(true);
 
+    // Wait for DOM to render the comprehensive view
     setTimeout(() => {
       window.print();
-
+      
       const cleanup = () => {
         document.body.classList.remove('is-printing-comprehensive');
         setIsComprehensive(false);
-        // إعادة الـ Viewport لوضعه الطبيعي بعد الطباعة
-        if (originalContent) {
-          viewport?.setAttribute('content', originalContent);
-        }
       };
 
-      // تنظيف الكلاس بعد الطباعة أو الإلغاء
       window.addEventListener('afterprint', cleanup, { once: true });
-
-      // أمان إضافي للموبايل
-      setTimeout(cleanup, 5000);
-    }, 1500);
+      // Fallback cleanup
+      setTimeout(cleanup, 500);
+    }, 1000);
   };
 
   if (isLoading) return <div className="p-8"><Skeleton className="h-64 rounded-xl" /></div>;
@@ -401,21 +439,72 @@ export default function ReportsPage() {
       </div>
 
       {/* Comprehensive View Logic (Shown only during printing) */}
-      <div className="comprehensive-report-container">
+      <div className="comprehensive-report-container space-y-12">
         <div className="text-center py-10 no-print">
           <p className="animate-pulse text-lg font-bold text-primary">جاري تجهيز التقرير الشامل لجميع العيادات...</p>
         </div>
+
+        {/* Official Comprehensive Print Header */}
+        <div className="hidden print:block text-center border-b-4 border-double border-primary pb-10 mb-12">
+          <h1 className="text-4xl font-black text-primary mb-2">نظام إدارة مخازن العيادات</h1>
+          <p className="text-xl font-bold italic text-muted-foreground">التقرير الشامل وتدقيق التكاليف الشهرية</p>
+          <div className="flex justify-center items-center gap-10 mt-6 text-sm font-bold bg-muted/30 py-3 rounded-full border border-dashed border-primary/20 max-w-2xl mx-auto">
+            <p>الفترة: {selectedDate}</p>
+            <p>عدد المواقع: {warehouses.length}</p>
+            <p>تاريخ الطبع: {format(new Date(), 'yyyy/MM/dd HH:mm')}</p>
+          </div>
+        </div>
+
         {warehouses.map(wh => (
-          <WarehouseReportSection
-            key={wh.id}
-            warehouse={wh}
-            items={items}
-            transactions={transactions}
-            selectedDate={selectedDate}
-            getItemStock={getItemStock}
-            warehouses={warehouses}
-          />
+          <div key={wh.id} className="print:break-after-page mb-20 print:mb-0">
+            <WarehouseReportSection
+              warehouse={wh}
+              items={items}
+              transactions={transactions}
+              selectedDate={selectedDate}
+              getItemStock={getItemStock}
+              warehouses={warehouses}
+            />
+          </div>
         ))}
+
+        {/* Global Summary Section */}
+        <div className="hidden print:block pt-16 break-before-page print:mt-10">
+          <div className="border-4 border-primary/20 p-8 rounded-[2rem] bg-slate-50">
+            <h2 className="text-3xl font-black text-center text-primary mb-10 pb-4 border-b-2 border-dashed border-primary/30">الإجمالي العام لجميع العيادات والمخازن</h2>
+            
+            <div className="grid grid-cols-2 gap-8 max-w-3xl mx-auto">
+              <div className="bg-white p-6 rounded-2xl border-2 border-primary/10 flex flex-col items-center">
+                <p className="text-sm font-bold text-muted-foreground mb-2">إجمالي عدد المواقع</p>
+                <p className="text-3xl font-black text-primary">{warehouses.length}</p>
+              </div>
+              <div className="bg-primary text-white p-6 rounded-2xl shadow-xl shadow-primary/20 flex flex-col items-center">
+                <p className="text-sm font-bold opacity-80 mb-2 text-white">إجمالي التكلفة الشاملة</p>
+                <p className="text-4xl font-black tracking-tighter">
+                  {grandSummary.totalCost.toLocaleString()} ريال
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-16 grid grid-cols-3 gap-12 text-center px-10">
+              <div>
+                <p className="font-bold text-sm mb-12">توقيع المسؤول</p>
+                <div className="border-t-2 border-slate-300 w-32 mx-auto"></div>
+              </div>
+              <div>
+                <p className="font-bold text-sm mb-12">التدقيق المالي</p>
+                <div className="border-t-2 border-slate-300 w-32 mx-auto"></div>
+              </div>
+              <div>
+                <p className="font-bold text-sm mb-2 text-primary">الأستاذة أميرة / Ms. Amira</p>
+                <p className="font-bold text-sm mb-12 italic">اعتماد الإدارة العامة</p>
+                <div className="border-t-4 border-double border-primary w-48 mx-auto"></div>
+              </div>
+            </div>
+            
+            <p className="text-center text-[10px] text-muted-foreground mt-20 opacity-40">تم استخراج هذا التقرير آلياً عبر نظام إدارة المخازن v2.0</p>
+          </div>
+        </div>
       </div>
     </div>
   );

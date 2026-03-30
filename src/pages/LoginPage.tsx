@@ -26,8 +26,7 @@ const LoginPage = () => {
         <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center p-4">
             {/* Premium Background */}
             <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('/doctor-bg.png')" }}
+                className="absolute inset-0 bg-cover bg-center bg-[url('/doctor-bg.png')]"
             />
             <div className="absolute inset-0 bg-gradient-to-br from-rose-50/80 via-white/40 to-rose-200/60 backdrop-blur-md" />
 
@@ -38,7 +37,7 @@ const LoginPage = () => {
             <Card className="relative z-10 w-full max-w-md bg-white/70 backdrop-blur-xl border-rose-100 shadow-2xl animate-in fade-in zoom-in duration-700">
                 <CardHeader className="space-y-1 text-center">
                     <div className="mx-auto bg-rose-500/10 p-3 rounded-full w-fit mb-4">
-                        <span className="text-3xl font-bold text-rose-600 tracking-tighter" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        <span className="text-3xl font-bold text-rose-600 tracking-tighter font-serif">
                             Welcome Ms. Amira
                         </span>
                     </div>

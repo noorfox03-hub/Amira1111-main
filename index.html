@@ -20,6 +20,19 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <script>
+      // Fix for "TrustedScript" assignment blocked errors in some browsers during print
+      if (window.trustedTypes && window.trustedTypes.createPolicy) {
+        if (!window.trustedTypes.defaultPolicy) {
+          window.trustedTypes.createPolicy('default', {
+            createHTML: (string) => string,
+            createScriptURL: (string) => string,
+            createScript: (string) => string,
+          });
+        }
+      }
+    </script>
   </head>
 
   <body>

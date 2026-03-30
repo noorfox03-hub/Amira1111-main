@@ -25,21 +25,26 @@ export default function AppSidebar({ isOpen, onClose }: { isOpen?: boolean; onCl
 
   return (
     <aside className={cn(
-      "fixed inset-y-0 right-0 z-50 w-64 bg-sidebar text-sidebar-foreground flex flex-col transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 outline-none border-l border-sidebar-border shadow-2xl lg:shadow-none",
+      "fixed inset-y-0 right-0 z-50 w-[280px] sm:w-[320px] lg:w-72 bg-sidebar text-sidebar-foreground flex flex-col transition-all duration-500 ease-in-out lg:relative lg:translate-x-0 outline-none border-l border-sidebar-border shadow-2xl lg:shadow-none",
+      "lg:bg-sidebar bg-sidebar/80 backdrop-blur-xl",
       !isOpen && "translate-x-full lg:translate-x-0"
     )}>
-      <div className="p-6 border-b border-sidebar-border flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <Warehouse className="w-5 h-5 text-sidebar-primary-foreground" />
+      <div className="p-8 border-b border-sidebar-border flex items-center justify-between bg-gradient-to-l from-sidebar-primary/5 to-transparent">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-sidebar-primary flex items-center justify-center shadow-lg shadow-sidebar-primary/20 rotate-3">
+            <Warehouse className="w-6 h-6 text-sidebar-primary-foreground -rotate-3" />
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">نظام المخازن</h1>
-            <p className="text-xs opacity-70">إدارة مخازن العيادات</p>
+            <h1 className="font-black text-xl tracking-tight text-sidebar-primary leading-none mb-1">نظام المخازن</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-50">إدارة مخازن العيادات</p>
           </div>
         </div>
-        <button onClick={onClose} className="lg:hidden p-2 hover:bg-sidebar-accent rounded-full transition-colors">
-          <X className="w-5 h-5" />
+        <button 
+          onClick={onClose} 
+          className="lg:hidden p-2.5 hover:bg-sidebar-accent rounded-xl transition-all active:scale-90 border border-transparent hover:border-sidebar-border shadow-sm"
+          aria-label="إغلاق القائمة"
+        >
+          <X className="w-5 h-5 text-sidebar-foreground/60" />
         </button>
       </div>
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -51,14 +56,17 @@ export default function AppSidebar({ isOpen, onClose }: { isOpen?: boolean; onCl
               to={to}
               onClick={onClose}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group',
+                'flex items-center gap-4 px-5 py-4 rounded-2xl text-[15px] font-bold transition-all duration-300 group relative overflow-hidden',
                 isActive
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
-                  : 'hover:bg-sidebar-accent/50 text-sidebar-foreground/80'
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-sidebar-primary/30 scale-[1.02]'
+                  : 'hover:bg-sidebar-accent/70 text-sidebar-foreground/70 hover:text-sidebar-primary'
               )}
             >
-              <Icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive ? "text-sidebar-primary-foreground" : "text-primary/50")} />
+              <Icon className={cn("w-6 h-6 transition-all duration-500", isActive ? "text-white rotate-0" : "text-sidebar-primary/40 group-hover:rotate-12 group-hover:scale-110")} />
               {label}
+              {isActive && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/50 rounded-r-full" />
+              )}
             </Link>
           );
         })}
