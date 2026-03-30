@@ -1,9 +1,9 @@
+import React, { useMemo, ReactNode } from 'react';
 import { useInventoryStore } from '@/store/inventoryStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -24,7 +24,6 @@ import {
   Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
 
 
 export default function DashboardPage() {
