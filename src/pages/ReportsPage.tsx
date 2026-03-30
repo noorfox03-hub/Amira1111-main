@@ -49,12 +49,17 @@ function WarehouseReportSection({
     return items.map(item => {
       const itemTransactions = transactions.filter(t => {
         const txDate = new Date(t.timestamp);
-        const [selYear, selMonth] = selectedDate.split('-').map(Number);
-        const isMatch = (t.fromWarehouseId === warehouseId || t.toWarehouseId === warehouseId) &&
+        const [selYear, selMonth, selDay] = selectedDate.split('-').map(Number);
+        
+        // التحقق من السنة والشهر
+        const isSameMonth = txDate.getFullYear() === selYear && (txDate.getMonth() + 1) === selMonth;
+        // التحقق من أن اليوم قبل أو يطابق اليوم المختار (للحساب التراكمي في نفس الشهر)
+        const isBeforeOrOnDay = txDate.getDate() <= selDay;
+
+        return (t.fromWarehouseId === warehouseId || t.toWarehouseId === warehouseId) &&
           t.itemId === item.id &&
-          txDate.getFullYear() === selYear &&
-          (txDate.getMonth() + 1) === selMonth;
-        return isMatch;
+          isSameMonth &&
+          isBeforeOrOnDay;
       });
 
       const added = itemTransactions
@@ -97,10 +102,14 @@ function WarehouseReportSection({
     return transactions
       .filter(tx => {
         const txDate = new Date(tx.timestamp);
-        const [selYear, selMonth] = selectedDate.split('-').map(Number);
+        const [selYear, selMonth, selDay] = selectedDate.split('-').map(Number);
+        
+        const isSameMonth = txDate.getFullYear() === selYear && (txDate.getMonth() + 1) === selMonth;
+        const isBeforeOrOnDay = txDate.getDate() <= selDay;
+
         return (tx.fromWarehouseId === warehouseId || tx.toWarehouseId === warehouseId) &&
-          txDate.getFullYear() === selYear &&
-          (txDate.getMonth() + 1) === selMonth;
+          isSameMonth &&
+          isBeforeOrOnDay;
       })
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [warehouseId, selectedDate, transactions]);
@@ -274,21 +283,25 @@ function WarehouseReportSection({
 export default function ReportsPage() {
   const { warehouses, items, transactions, getItemStock, fetchData, isLoading } = useInventoryStore();
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM'));
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isComprehensive, setIsComprehensive] = useState(false);
 
-  // حساب الإجماليات مسبقاً لتحسين الأداء
+  // حساب الإجماليات مسبقاً لتحسين الأداء (تراكمي حتى اليوم المختار)
   const grandSummary = useMemo(() => {
+    const [selYear, selMonth, selDay] = selectedDate.split('-').map(Number);
+
     const warehouseTotals = warehouses.map(wh => {
       const whId = wh.id;
       const whTotal = items.reduce((sum, item) => {
         const itemTransactions = transactions.filter(t => {
           const txDate = new Date(t.timestamp);
-          const [selYear, selMonth] = selectedDate.split('-').map(Number);
+          const isSameMonth = txDate.getFullYear() === selYear && (txDate.getMonth() + 1) === selMonth;
+          const isBeforeOrOnDay = txDate.getDate() <= selDay;
+
           return (t.fromWarehouseId === whId || t.toWarehouseId === whId) &&
             t.itemId === item.id &&
-            txDate.getFullYear() === selYear &&
-            (txDate.getMonth() + 1) === selMonth;
+            isSameMonth &&
+            isBeforeOrOnDay;
         });
 
         const dispensed = itemTransactions
@@ -379,8 +392,8 @@ export default function ReportsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="flex items-center gap-2 font-bold">الشهر</Label>
-              <Input type="month" className="h-12 border-2" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
+              <Label className="flex items-center gap-2 font-bold">التاريخ</Label>
+              <Input type="date" className="h-12 border-2" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
             </div>
           </div>
           <div className="flex gap-2 mt-6 justify-end">

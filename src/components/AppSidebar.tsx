@@ -8,6 +8,7 @@ import {
   FileBarChart,
   Warehouse,
   X,
+  TriangleAlert,
 } from 'lucide-react';
 
 export const navItems = [
@@ -18,6 +19,7 @@ export const navItems = [
   { to: '/items', label: 'إدارة الأصناف', icon: Package },
   { to: '/clinics', label: 'إدارة العيادات', icon: Warehouse },
   { to: '/reports', label: 'التقارير', icon: FileBarChart },
+  { to: '/shortage', label: 'الأصناف الناقصة', icon: TriangleAlert },
 ];
 
 export default function AppSidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {

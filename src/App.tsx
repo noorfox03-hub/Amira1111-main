@@ -13,6 +13,7 @@ import TransferPage from "./pages/TransferPage";
 import ItemsPage from "./pages/ItemsPage";
 import AdjustmentPage from "./pages/AdjustmentPage";
 import ReportsPage from "./pages/ReportsPage";
+import ShortagePage from "./pages/ShortagePage";
 import ClinicsPage from "./pages/ClinicsPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
@@ -59,7 +60,8 @@ const App = () => {
             <Route path="/transfer" element={<TransferPage />} />
             <Route path="/items" element={<ItemsPage />} />
             <Route path="/clinics" element={<ClinicsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
+             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/shortage" element={<ShortagePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

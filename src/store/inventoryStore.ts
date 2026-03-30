@@ -19,6 +19,7 @@ interface InventoryStore {
 
   // Getters
   getItemStock: (warehouseId: string, itemId: string) => number;
+  getStockMap: () => Record<string, number>; // إضافة خريطة أرصدة سريعة
   getWarehouseItems: (warehouseId: string) => Array<InventoryRecord & { item: Item }>;
   getLowStockItems: (warehouseId: string) => Array<InventoryRecord & { item: Item }>;
   getItemById: (id: string) => Item | undefined;
@@ -128,6 +129,15 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   getItemStock: (warehouseId, itemId) => {
     const rec = get().inventory.find(r => r.warehouseId === warehouseId && r.itemId === itemId);
     return rec?.quantity ?? 0;
+  },
+
+  getStockMap: () => {
+    const { inventory } = get();
+    const map: Record<string, number> = {};
+    inventory.forEach(r => {
+      map[`${r.warehouseId}-${r.itemId}`] = r.quantity;
+    });
+    return map;
   },
 
   getWarehouseItems: (warehouseId) => {

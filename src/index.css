@@ -151,14 +151,12 @@
 
     .break-after-page {
       break-after: page !important;
-      -webkit-column-break-after: always;
       page-break-after: always !important;
       display: block !important;
     }
 
     .break-before-page {
       break-before: page !important;
-      -webkit-column-break-before: always;
       page-break-before: always !important;
       display: block !important;
     }
