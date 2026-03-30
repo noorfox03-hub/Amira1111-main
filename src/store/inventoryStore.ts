@@ -152,16 +152,16 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     return get().getWarehouseItems(warehouseId).filter(r => r.quantity <= r.item.minLimit);
   },
 
-  dispenseItem: async (warehouseId, itemId, quantity, unit) => {
+  dispenseItem: async (fromWarehouseId, itemId, quantity, unit, toWarehouseId) => {
     const state = get();
     const item = state.getItemById(itemId);
     if (!item) return { success: false, message: 'الصنف غير موجود' };
 
     const finalQty = unit === 'box' ? quantity * item.conversionFactor : quantity;
-    const currentStock = state.getItemStock(warehouseId, itemId);
+    const currentStock = state.getItemStock(fromWarehouseId, itemId);
 
     if (finalQty > currentStock) {
-      return { success: false, message: `لا يوجد رصيد كافٍ. المتاح ${currentStock} قطعة فقط.` };
+      return { success: false, message: `لا يوجد رصيد كافٍ في المستودع الرئيسي. المتاح ${currentStock} قطعة فقط.` };
     }
 
     const totalPrice = finalQty * item.salePrice;
@@ -174,7 +174,8 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     const tempTx: Transaction = {
       id: tempTxId,
       type: 'dispense',
-      fromWarehouseId: warehouseId,
+      fromWarehouseId,
+      toWarehouseId, // Record target clinic
       itemId,
       quantity: finalQty,
       totalPrice,
@@ -183,7 +184,7 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
 
     set({
       inventory: state.inventory.map(r =>
-        r.warehouseId === warehouseId && r.itemId === itemId
+        r.warehouseId === fromWarehouseId && r.itemId === itemId
           ? { ...r, quantity: r.quantity - finalQty }
           : r
       ),
@@ -193,21 +194,19 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     try {
       // Call RPC for atomic transaction
       const { error: rpcErr } = await supabase.rpc('dispense_item_v1', {
-        p_warehouse_id: Number(warehouseId),
+        p_warehouse_id: Number(fromWarehouseId),
         p_item_id: Number(itemId),
         p_qty: finalQty,
-        p_total_cost: totalPrice
+        p_total_cost: totalPrice,
+        p_to_warehouse_id: toWarehouseId ? Number(toWarehouseId) : null
       });
 
 
       if (rpcErr) throw rpcErr;
 
-      // Update local state (Optimistic sync or refresh)
-      // Since we already did it optimistically, we just need to settle the temp ID if we were using it for lists
-      // For simplicity, we can just re-fetch latest transactions to get the real DB ID
       get().fetchData();
 
-      return { success: true, message: `تم صرف ${finalQty} قطعة بنجاح. التكلفة: ${totalPrice} ريال`, finalQty, totalPrice };
+      return { success: true, message: `تم صرف ${finalQty} قطعة بنجاح لليعن. التكلفة: ${totalPrice} ريال`, finalQty, totalPrice };
     } catch (err: any) {
       set({ inventory: previousInventory, transactions: previousTransactions }); // Rollback
       return { success: false, message: err.message || 'حدث خطأ أثناء الصرف' };

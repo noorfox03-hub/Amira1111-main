@@ -66,22 +66,32 @@ function WarehouseReportSection({
         .filter(t => (t.type === 'add' || t.type === 'transfer') && t.toWarehouseId === warehouseId)
         .reduce((sum, t) => sum + t.quantity, 0);
 
-      // للمخزن الرئيسي: الاستهلاك هو (المنصرف + المحول للعيادات)
-      // للعيادات: الاستهلاك هو (المنصرف فقط)
+      // للمستودع الرئيسي: الاستهلاك هو كل ما صُرف منه مباشرة أو حُوّل للعيادات
+      // للعيادات: الاستهلاك هو ما صُرف لها من الرئيسي أو صُرف منها (المنطق القديم)
       const dispensed = itemTransactions
-        .filter(t =>
-          (t.type === 'dispense' && t.fromWarehouseId === warehouseId) ||
-          (isMainWarehouse && t.type === 'transfer' && t.fromWarehouseId === 'main')
-        )
+        .filter(t => {
+          if (t.type === 'dispense') {
+            // صُرف من هذا المستودع أو صُرف إليه كوجهة نهائية
+            return t.fromWarehouseId === warehouseId || t.toWarehouseId === warehouseId;
+          }
+          if (t.type === 'transfer' && t.fromWarehouseId === warehouseId) {
+            // تحويل من هذا المستودع (للمستودع الرئيسي فقط عادة)
+            return true;
+          }
+          return false;
+        })
         .reduce((sum, t) => sum + t.quantity, 0);
 
-      // تفاصيل الاستهلاك حسب الموقع (العيادات)
+      // تفاصيل الاستهلاك حسب الموقع (للعيادات المخدومة من الرئيسي)
       const consumptionByClinic = isMainWarehouse ? warehouses
-        .filter(w => w.id !== 'main')
+        .filter(w => w.type === 'clinic')
         .map(w => ({
           name: w.name,
           amount: itemTransactions
-            .filter(t => t.type === 'transfer' && t.fromWarehouseId === 'main' && t.toWarehouseId === w.id)
+            .filter(t => 
+              (t.type === 'transfer' && t.fromWarehouseId === warehouseId && t.toWarehouseId === w.id) ||
+              (t.type === 'dispense' && t.fromWarehouseId === warehouseId && t.toWarehouseId === w.id)
+            )
             .reduce((sum, t) => sum + t.quantity, 0)
         })).filter(c => c.amount > 0) : [];
 
@@ -305,10 +315,15 @@ export default function ReportsPage() {
         });
 
         const dispensed = itemTransactions
-          .filter(t =>
-            (t.type === 'dispense' && t.fromWarehouseId === whId) ||
-            (whId === 'main' && t.type === 'transfer' && t.fromWarehouseId === 'main')
-          )
+          .filter(t => {
+            if (t.type === 'dispense') {
+              return t.fromWarehouseId === whId || t.toWarehouseId === whId;
+            }
+            if (t.type === 'transfer' && t.fromWarehouseId === whId) {
+              return true;
+            }
+            return false;
+          })
           .reduce((acc, t) => acc + t.quantity, 0);
 
         return sum + (dispensed * (item.salePrice || 0));

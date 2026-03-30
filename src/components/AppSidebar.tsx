@@ -15,7 +15,7 @@ export const navItems = [
   { to: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
   { to: '/adjustment', label: 'تسوية كميات', icon: PackageMinus },
   { to: '/dispense', label: 'صرف صنف', icon: PackageMinus },
-  { to: '/transfer', label: 'إضافة / تحويل', icon: PackagePlus },
+  { to: '/transfer', label: 'إضافة مخزون', icon: PackagePlus },
   { to: '/items', label: 'إدارة الأصناف', icon: Package },
   { to: '/clinics', label: 'إدارة العيادات', icon: Warehouse },
   { to: '/reports', label: 'التقارير', icon: FileBarChart },

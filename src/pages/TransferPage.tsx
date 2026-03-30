@@ -76,7 +76,7 @@ export default function TransferPage() {
     return (
       <div className="space-y-8 animate-fade-in max-w-2xl">
         <div>
-          <h1 className="text-3xl font-bold">إضافة / تحويل مخزون</h1>
+          <h1 className="text-3xl font-bold">إضافة مخزون</h1>
           <p className="text-muted-foreground mt-1">جاري التحميل...</p>
         </div>
         <Skeleton className="h-64 rounded-xl" />
@@ -87,14 +87,14 @@ export default function TransferPage() {
   return (
     <div className="space-y-8 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold">إضافة / تحويل مخزون</h1>
-        <p className="text-muted-foreground mt-1">تحويل أصناف بين المخازن أو إضافة مخزون جديد</p>
+        <h1 className="text-3xl font-bold">إضافة مخزون</h1>
+        <p className="text-muted-foreground mt-1">إضافة كميات جديدة للمستودع الرئيسي</p>
       </div>
 
-      <Tabs defaultValue="transfer" dir="rtl">
+      <Tabs defaultValue="add" dir="rtl">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="transfer">تحويل بين المخازن</TabsTrigger>
-          <TabsTrigger value="add">إضافة مخزون</TabsTrigger>
+          <TabsTrigger value="add">إضافة مخزون جديد</TabsTrigger>
+          <TabsTrigger value="transfer">تحويل بين المخازن (يدوي)</TabsTrigger>
         </TabsList>
 
         <TabsContent value="transfer">

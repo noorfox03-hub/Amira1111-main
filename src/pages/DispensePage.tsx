@@ -15,16 +15,20 @@ import { ItemSearchField } from '@/components/ItemSearchField';
 export default function DispensePage() {
   const { warehouses, items, getItemStock, getWarehouseItems, dispenseItem, isLoading, error } = useInventoryStore();
   const { toast } = useToast();
+  
   const clinics = warehouses.filter(w => w.type === 'clinic');
+  const mainWarehouse = warehouses.find(w => w.type === 'main');
 
-  const [selectedWarehouse, setSelectedWarehouse] = useState('');
+  const [selectedClinic, setSelectedClinic] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState<'piece' | 'box'>('piece');
   const [submitting, setSubmitting] = useState(false);
 
   const selectedItemData = items.find(i => i.id === selectedItem);
-  const currentStock = selectedItem && selectedWarehouse ? getItemStock(selectedWarehouse, selectedItem) : 0;
+  // Always check stock from Main Warehouse
+  const currentStock = selectedItem && mainWarehouse ? getItemStock(mainWarehouse.id, selectedItem) : 0;
+  
   const isLowStock = selectedItemData ? currentStock <= selectedItemData.minLimit : false;
   const finalQty = selectedItemData && quantity
     ? unit === 'box' ? Number(quantity) * selectedItemData.conversionFactor : Number(quantity)
@@ -33,15 +37,23 @@ export default function DispensePage() {
   const insufficientStock = finalQty > currentStock;
 
   const handleDispense = async () => {
-    if (!selectedWarehouse || !selectedItem || !quantity || Number(quantity) <= 0) {
+    if (!selectedClinic || !selectedItem || !quantity || Number(quantity) <= 0) {
       toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول', variant: 'destructive' });
       return;
     }
+    
+    if (!mainWarehouse) {
+      toast({ title: 'خطأ', description: 'المستودع الرئيسي غير موجود', variant: 'destructive' });
+      return;
+    }
+
     setSubmitting(true);
-    const result = await dispenseItem(selectedWarehouse, selectedItem, Number(quantity), unit);
+    // Dispense from MAIN to CLINIC
+    const result = await dispenseItem(mainWarehouse.id, selectedItem, Number(quantity), unit, selectedClinic);
     setSubmitting(false);
+    
     if (result.success) {
-      toast({ title: 'تم الصرف', description: result.message });
+      toast({ title: 'تم الصرف بنجاح', description: result.message });
       setSelectedItem('');
       setQuantity('');
     } else {
@@ -78,44 +90,41 @@ export default function DispensePage() {
   return (
     <div className="space-y-8 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold">صرف صنف</h1>
-        <p className="text-muted-foreground mt-1">صرف أصناف من مخزن عيادة</p>
+        <h1 className="text-3xl font-bold">صرف صنف للموقع</h1>
+        <p className="text-muted-foreground mt-1">يتم الصرف مباشرة من المستودع الرئيسي للعيادة المختارة</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>بيانات الصرف</CardTitle>
+          <CardTitle>بيانات الصرف المباشر</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>اختر العيادة</Label>
-            <Select value={selectedWarehouse} onValueChange={v => { setSelectedWarehouse(v); setSelectedItem(''); }}>
+            <Label>العيادة المستلمة</Label>
+            <Select value={selectedClinic} onValueChange={setSelectedClinic}>
               <SelectTrigger><SelectValue placeholder="اختر العيادة..." /></SelectTrigger>
               <SelectContent>
                 {clinics.length === 0 ? (
-                  <p className="p-2 text-sm text-center text-muted-foreground">لا توجد عيادات مسجلة (تأكد من تشغيل SQL في سوبابيز)</p>
+                  <p className="p-2 text-sm text-center text-muted-foreground">لا توجد عيادات مسجلة</p>
                 ) : (
                   clinics.map(c => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))
                 )}
-
               </SelectContent>
             </Select>
           </div>
 
-          {selectedWarehouse && (
-            <div className="space-y-2">
-              <Label>ابحث عن الصنف</Label>
-              <ItemSearchField
-                items={getWarehouseItems(selectedWarehouse).map(r => r.item)}
-                selectedItemId={selectedItem}
-                onSelect={setSelectedItem}
-                warehouseId={selectedWarehouse}
-                getItemStock={getItemStock}
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label>ابحث عن الصنف (من المستودع الرئيسي)</Label>
+            <ItemSearchField
+              items={mainWarehouse ? getWarehouseItems(mainWarehouse.id).map(r => r.item) : []}
+              selectedItemId={selectedItem}
+              onSelect={setSelectedItem}
+              warehouseId={mainWarehouse?.id || ''}
+              getItemStock={getItemStock}
+            />
+          </div>
 
           {selectedItem && selectedItemData && (
             <>
@@ -125,10 +134,10 @@ export default function DispensePage() {
                     {isLowStock ? <AlertTriangle className="w-5 h-5 text-destructive" /> : <Check className="w-5 h-5 text-success" />}
                     <span className="font-medium">{selectedItemData.name}</span>
                   </div>
-                  <span className="font-bold">{currentStock} قطعة متاحة</span>
+                  <span className="font-bold">رصيد المستودع: {currentStock} قطعة</span>
                 </div>
                 {isLowStock && (
-                  <p className="text-sm text-destructive mt-2">⚠️ الرصيد تحت الحد الأدنى ({selectedItemData.minLimit} قطعة). يُنصح بطلب إضافة من المخزن الرئيسي.</p>
+                  <p className="text-sm text-destructive mt-2">⚠️ رصيد المستودع الرئيسي تحت الحد الأدنى ({selectedItemData.minLimit} قطعة).</p>
                 )}
               </div>
 
@@ -155,10 +164,10 @@ export default function DispensePage() {
                 <div className={`p-4 rounded-lg ${insufficientStock ? 'bg-destructive/10 border border-destructive' : 'bg-muted'}`}>
                   {insufficientStock ? (
                     <div className="space-y-4">
-                      <p className="text-destructive font-medium">❌ لا يوجد رصيد كافٍ. المتاح {currentStock} قطعة فقط.</p>
+                      <p className="text-destructive font-medium">❌ لا يوجد رصيد كافٍ في المستودع الرئيسي. المتاح {currentStock} قطعة فقط.</p>
                       <Button asChild variant="outline" className="w-full gap-2 border-destructive text-destructive hover:bg-destructive/10">
-                        <Link to="/transfer">
-                          <PlusCircle className="w-4 h-4" /> طلب إضافة رصيد من المخزن الرئيسي
+                        <Link to="/reports">
+                          <PlusCircle className="w-4 h-4" /> مراجعة النواقص في التقارير
                         </Link>
                       </Button>
                     </div>
@@ -184,10 +193,10 @@ export default function DispensePage() {
               <Button
                 className="w-full"
                 size="lg"
-                disabled={!quantity || Number(quantity) <= 0 || insufficientStock || submitting}
+                disabled={!selectedClinic || !quantity || Number(quantity) <= 0 || insufficientStock || submitting}
                 onClick={handleDispense}
               >
-                {submitting ? 'جاري الصرف...' : 'تأكيد الصرف'}
+                {submitting ? 'جاري الصرف...' : 'تأكيد الصرف المباشر'}
               </Button>
             </>
           )}
