@@ -87,135 +87,80 @@ export default function TransferPage() {
   return (
     <div className="space-y-8 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="text-3xl font-bold">إضافة مخزون</h1>
-        <p className="text-muted-foreground mt-1">إضافة كميات جديدة للمستودع الرئيسي</p>
+        <h1 className="text-3xl font-bold text-sky-900 font-black">إضافة مخزون</h1>
+        <p className="text-muted-foreground mt-1 font-medium">إضافة كميات جديدة للمستودع الرئيسي المركز</p>
       </div>
 
-      <Tabs defaultValue="add" dir="rtl">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="add">إضافة مخزون جديد</TabsTrigger>
-          <TabsTrigger value="transfer">تحويل بين المخازن (يدوي)</TabsTrigger>
-        </TabsList>
+      <div className="bg-sky-50 p-6 rounded-[2rem] border border-sky-100 flex items-center gap-4 shadow-sm">
+        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md shadow-sky-100">
+          <PackagePlus className="w-7 h-7 text-sky-600" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-sky-900">توريد مخزون جديد</h2>
+          <p className="text-sm text-muted-foreground">سيتم إضافة الأصناف المختارة مباشرة إلى رصيد المركز</p>
+        </div>
+      </div>
 
-        <TabsContent value="transfer">
-          <Card>
-            <CardHeader><CardTitle>تحويل مخزني</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>من مخزن (المركز الأم)</Label>
-                  <Select
-                    value={fromWh}
-                    onValueChange={setFromWh}
-                    disabled={true}
-                  >
-                    <SelectTrigger className="bg-muted font-bold"><SelectValue placeholder="المخزن الرئيسي" /></SelectTrigger>
-                    <SelectContent>
-                      {warehouses.filter(w => w.type === 'main').map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>إلى مخزن (العيادة الاستلام)</Label>
-                  <Select value={toWh} onValueChange={setToWh}>
-                    <SelectTrigger><SelectValue placeholder="الوجهة..." /></SelectTrigger>
-                    <SelectContent>
-                      {warehouses.filter(w => w.type !== 'main').map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>ابحث عن الصنف</Label>
-                <ItemSearchField
-                  items={items}
-                  selectedItemId={selectedItem}
-                  onSelect={setSelectedItem}
-                  warehouseId={fromWh}
-                  getItemStock={getItemStock}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>الكمية</Label>
-                  <Input type="number" min="1" value={transferQty} onChange={e => setTransferQty(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>الوحدة</Label>
-                  <Select value={transferUnit} onValueChange={v => setTransferUnit(v as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="piece">قطعة</SelectItem>
-                      {transferItemData && transferItemData.conversionFactor > 1 && (
-                        <SelectItem value="box">علبة ({transferItemData.conversionFactor} قطعة)</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {transferItemData && transferQty && Number(transferQty) > 0 && (
-                <div className="p-3 rounded-lg bg-muted text-sm">
-                  <span className="text-muted-foreground">التكلفة: </span>
-                  <span className="font-bold text-primary">
-                    {((transferUnit === 'box' ? Number(transferQty) * transferItemData.conversionFactor : Number(transferQty)) * transferItemData.purchasePrice).toLocaleString()} ريال
-                  </span>
-                </div>
-              )}
-              <Button className="w-full" size="lg" onClick={handleTransfer} disabled={submitting}>
-                {submitting ? 'جاري التحويل...' : 'تأكيد التحويل'}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="bg-slate-50/50 border-b p-8">
+          <CardTitle className="text-lg font-bold flex items-center gap-2">
+            تفاصيل التوريد
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8 space-y-6">
+          <div className="space-y-3">
+            <Label className="font-bold text-sky-800">الموقع المستهدف</Label>
+            <div className="h-14 flex items-center px-5 rounded-2xl bg-muted/20 border border-slate-100 font-black text-slate-500 italic">
+              {warehouses.find(w => w.type === 'main')?.name || 'المستودع الرئيسي'}
+            </div>
+          </div>
 
-        <TabsContent value="add">
-          <Card>
-            <CardHeader><CardTitle>إضافة مخزون جديد</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>المخزن</Label>
-                <Select value={addWh} onValueChange={setAddWh} disabled={true}>
-                  <SelectTrigger className="bg-muted font-bold"><SelectValue placeholder="اختر المخزن..." /></SelectTrigger>
-                  <SelectContent>
-                    {warehouses.filter(w => w.type === 'main').map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>الصنف</Label>
-                <ItemSearchField
-                  items={items}
-                  selectedItemId={addItemId}
-                  onSelect={setAddItemId}
-                  warehouseId={addWh}
-                  getItemStock={getItemStock}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>الكمية</Label>
-                  <Input type="number" min="1" value={addQty} onChange={e => setAddQty(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>الوحدة</Label>
-                  <Select value={addUnit} onValueChange={v => setAddUnit(v as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="piece">قطعة</SelectItem>
-                      {addItemData && addItemData.conversionFactor > 1 && (
-                        <SelectItem value="box">علبة ({addItemData.conversionFactor} قطعة)</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button className="w-full" size="lg" onClick={handleAdd} disabled={submitting}>
-                {submitting ? 'جاري الإضافة...' : 'تأكيد الإضافة'}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <div className="space-y-3">
+            <Label className="font-bold text-sky-800 text-base">ابحث عن الصنف بـ الاسم أو الباركود</Label>
+            <ItemSearchField
+              items={items}
+              selectedItemId={addItemId}
+              onSelect={setAddItemId}
+              warehouseId={addWh}
+              getItemStock={getItemStock}
+              className="h-14"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label className="font-bold text-sky-800">الكمية الموردة</Label>
+              <Input 
+                type="number" 
+                min="1" 
+                value={addQty} 
+                onChange={e => setAddQty(e.target.value)} 
+                className="h-14 rounded-2xl text-lg font-bold shadow-sm"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label className="font-bold text-sky-800">الوحدة</Label>
+              <Select value={addUnit} onValueChange={v => setAddUnit(v as any)}>
+                <SelectTrigger className="h-14 rounded-2xl font-bold shadow-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="piece" className="font-bold">قطعة</SelectItem>
+                  {addItemData && addItemData.conversionFactor > 1 && (
+                    <SelectItem value="box" className="font-bold">علبة ({addItemData.conversionFactor} قطعة)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t">
+            <Button size="lg" onClick={handleAdd} disabled={submitting} className="w-full h-14 rounded-2xl text-lg font-black bg-sky-600 hover:bg-sky-700 shadow-xl shadow-sky-200 transition-all active:scale-95">
+              {submitting ? 'جاري تسجيل التوريد...' : 'تأكيد إضافة المخزون'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

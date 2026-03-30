@@ -105,14 +105,11 @@ export default function AdjustmentPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-end">
                             <div className="space-y-3">
                                 <Label className="font-bold flex items-center gap-2">
-                                    <Warehouse className="w-4 h-4 text-sky-600" /> اختار المخزن
+                                    <Warehouse className="w-4 h-4 text-sky-600" /> الموقع المستهدف
                                 </Label>
-                                <Select value={selectedWarehouse} onValueChange={setSelectedWarehouse}>
-                                    <SelectTrigger className="h-12 rounded-xl shadow-sm border-sky-100"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                        {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <div className="h-12 flex items-center px-4 rounded-xl bg-sky-50 border border-sky-100 font-bold text-sky-900">
+                                    المستودع الرئيسي
+                                </div>
                             </div>
 
                             <div className="space-y-3">

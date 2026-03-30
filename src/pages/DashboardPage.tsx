@@ -168,10 +168,10 @@ export default function DashboardPage() {
                 <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner">
                   <div
                     className={cn(
-                      "h-full rounded-full transition-all duration-1000",
+                      "h-full rounded-full dynamic-width-bar",
                       i === 0 ? "bg-sky-500" : i === 1 ? "bg-emerald-500" : "bg-slate-400"
                     )}
-                    style={{ width: `${Math.min(100, (item.qty / (stats.itemConsumption[0]?.qty || 1)) * 100)}%` }}
+                    style={{ '--progress': `${Math.min(100, (item.qty / (stats.itemConsumption[0]?.qty || 1)) * 100)}%` } as React.CSSProperties}
                   ></div>
                 </div>
               </div>
@@ -181,57 +181,15 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {warehouses.map(wh => {
-          const whItems = inventory.filter(r => r.warehouseId === String(wh.id));
-          const lowStock = getLowStockItems(String(wh.id));
-          const totalValue = whItems.reduce((sum, r) => {
-            const item = items.find(i => String(i.id) === String(r.itemId));
-            return sum + (item ? Number(r.quantity) * Number(item.purchasePrice) : 0);
-          }, 0);
-
-          return (
-            <Card key={wh.id} className="group border-none shadow-lg shadow-slate-200/30 rounded-3xl hover:shadow-2xl hover:shadow-sky-100 transition-all duration-500 overflow-hidden">
-              <div className={cn("h-1.5 w-full", wh.type === 'main' ? "bg-sky-500" : "bg-emerald-500")} />
-              <CardHeader className="flex flex-row items-center justify-between p-6 pb-2">
-                <CardTitle className="text-xl font-black text-slate-800">{wh.name}</CardTitle>
-                {lowStock.length > 0 && (
-                  <Badge variant="destructive" className="animate-bounce shadow-lg shadow-destructive/20">
-                    {lowStock.length} أرقام حرجة
-                  </Badge>
-                )}
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1 text-center">الأصناف</p>
-                    <p className="text-xl font-black text-slate-800 text-center">{whItems.length}</p>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1 text-center">القيمة</p>
-                    <p className="text-xl font-black text-sky-600 text-center">{totalValue.toLocaleString()}</p>
-                  </div>
-                </div>
-
-                {lowStock.length > 0 && (
-                  <div className="pt-2">
-                    <p className="text-[11px] font-black text-rose-500 mb-2 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> تنبيه نقص حاد في:
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {lowStock.slice(0, 3).map(ls => (
-                        <Badge key={ls.itemId} variant="outline" className="text-[10px] border-rose-200 text-rose-600 bg-rose-50 font-bold">
-                          {ls.item.name}
-                        </Badge>
-                      ))}
-                      {lowStock.length > 3 && <span className="text-[10px] text-slate-400 font-bold">+{lowStock.length - 3} أخرى</span>}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* تم إزالة بطاقات العيادات والمستودعات الفردية بناءً على طلب المركزية */}
+      <div className="bg-sky-50/50 p-8 rounded-[2.5rem] border border-sky-100/50 text-center space-y-4">
+        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-sky-200/50">
+           <Warehouse className="w-8 h-8 text-sky-600" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-sky-900">نظام المخازن المركزي</h3>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">يتم الآن إدارة كافة الأرصدة من خلال المستودع الرئيسي، وتظهر الرسوم البيانية أعلاه تفاصيل الاستهلاك لكل عيادة.</p>
+        </div>
       </div>
     </div>
   );

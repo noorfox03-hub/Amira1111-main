@@ -41,6 +41,11 @@
   }
 }
 
+.dynamic-width-bar {
+  width: var(--progress, 0%);
+  transition: width 1s ease-in-out;
+}
+
 @layer base {
   * {
     border-color: hsl(var(--border));

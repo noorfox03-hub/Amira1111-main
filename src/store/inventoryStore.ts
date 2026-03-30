@@ -149,7 +149,13 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   },
 
   getLowStockItems: (warehouseId) => {
-    return get().getWarehouseItems(warehouseId).filter(r => r.quantity <= r.item.minLimit);
+    const { items } = get();
+    return items
+      .map(item => {
+        const quantity = get().getItemStock(warehouseId, item.id);
+        return { item, quantity, warehouseId, itemId: item.id };
+      })
+      .filter(r => r.quantity <= r.item.minLimit);
   },
 
   dispenseItem: async (fromWarehouseId, itemId, quantity, unit, toWarehouseId) => {
