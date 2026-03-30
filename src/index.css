@@ -1,0 +1,152 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@layer base {
+  :root {
+    --background: 180 20% 98%;
+    --foreground: 200 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 25% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 25% 10%;
+    --primary: 174 62% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 15% 93%;
+    --secondary-foreground: 200 25% 15%;
+    --muted: 180 10% 94%;
+    --muted-foreground: 200 10% 45%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 180 15% 88%;
+    --input: 180 15% 88%;
+    --ring: 174 62% 38%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+
+  /* تحسين أداء ورندر الجداول */
+  table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  th,
+  td {
+    text-align: center !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    vertical-align: middle !important;
+  }
+
+  .comprehensive-report-container {
+    display: none !important;
+  }
+
+  body.is-printing-comprehensive .comprehensive-report-container {
+    display: block !important;
+  }
+
+  body.is-printing-comprehensive .normal-report-view {
+    display: none !important;
+  }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    * {
+      transition: none !important;
+      animation: none !important;
+      opacity: 1 !important;
+      overflow: visible !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      min-width: 1024px !important;
+      zoom: 0.8;
+      background: white !important;
+      color: black !important;
+    }
+
+    .no-print,
+    header,
+    nav,
+    button,
+    aside,
+    .sidebar-trigger {
+      display: none !important;
+    }
+
+    #root,
+    main {
+      display: block !important;
+      width: 100% !important;
+      overflow: visible !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* تكرار رأس الجدول تلقائياً */
+    thead {
+      display: table-header-group !important;
+    }
+
+    /* منع تقطيع الصفوف والأقسام */
+    tr,
+    .card,
+    .stamp-section {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+
+    .card {
+      border: 1px solid #eee !important;
+      box-shadow: none !important;
+      margin-bottom: 2rem !important;
+      overflow: visible !important;
+    }
+
+    .break-after-page {
+      break-after: page !important;
+      page-break-after: always !important;
+      display: block !important;
+      height: 1px !important;
+    }
+
+    /* إجبار الشبكة (Grid) على البقاء في صف واحد في الطباعة */
+    .grid {
+      display: grid !important;
+    }
+
+    .print-grid-cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+  }
+}
