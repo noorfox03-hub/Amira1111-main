@@ -383,8 +383,13 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
   },
 
   deleteItem: async (id) => {
-    // Delete from DB
+    // 1. Delete associated inventory records
     await supabase.from('inventory').delete().eq('item_id', id);
+    
+    // 2. Delete associated transaction history (to satisfy FK constraints)
+    await supabase.from('transactions').delete().eq('item_id', id);
+
+    // 3. Delete the item record itself
     const { error } = await supabase.from('items').delete().eq('id', id);
     if (error) throw error;
 
