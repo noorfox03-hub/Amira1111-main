@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '@/integrations/supabase/client';
-import { Item, Warehouse, InventoryRecord, Transaction } from '@/types/inventory';
+import { Item, Warehouse, InventoryRecord, Transaction, TransactionType } from '@/types/inventory';
 
 interface InventoryStore {
   items: Item[];
@@ -26,7 +26,7 @@ interface InventoryStore {
   getWarehouseById: (id: string) => Warehouse | undefined;
 
   // Actions
-  dispenseItem: (warehouseId: string, itemId: string, quantity: number, unit: 'piece' | 'box') => Promise<{ success: boolean; message: string; finalQty?: number; totalPrice?: number }>;
+  dispenseItem: (warehouseId: string, itemId: string, quantity: number, unit: 'piece' | 'box', toWarehouseId?: string, type?: TransactionType, notes?: string, date?: string) => Promise<{ success: boolean; message: string; finalQty?: number; totalPrice?: number }>;
   transferItem: (fromWarehouseId: string, toWarehouseId: string, itemId: string, quantity: number, unit: 'piece' | 'box') => Promise<{ success: boolean; message: string }>;
   addStock: (warehouseId: string, itemId: string, quantity: number, unit: 'piece' | 'box') => Promise<{ finalQty: number }>;
   addItem: (item: Item) => Promise<void>;
@@ -40,9 +40,12 @@ interface InventoryStore {
 
   // System Actions
   resetTransactions: () => Promise<void>;
+  reverseTransaction: (transactionId: string) => Promise<{ success: boolean; message: string }>;
+  saveSnapshot: () => Promise<void>;
+  restoreFromSnapshot: () => Promise<{ success: boolean; message: string }>;
 }
 
-export const useInventoryStore = create<InventoryStore>((set, get) => ({
+export const useInventoryStore = create<InventoryStore>((set, get): InventoryStore => ({
   items: [],
   warehouses: [],
   inventory: [],
@@ -84,12 +87,12 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
         inventory: (invRes.data || []).map(r => ({ warehouseId: String(r.warehouse_id), itemId: String(r.item_id), quantity: Number(r.quantity) })),
         transactions: (txRes.data || []).map(r => ({
           id: String(r.id),
-          type: r.type === 'صرف' ? 'dispense' : r.type === 'إضافة' ? 'add' : 'transfer',
+          type: r.type === 'صرف' ? 'dispense' : r.type === 'إضافة' ? 'add' : r.type === 'تحويل' ? 'transfer' : r.type,
           fromWarehouseId: r.from_warehouse_id ? String(r.from_warehouse_id) : undefined,
           toWarehouseId: r.to_warehouse_id ? String(r.to_warehouse_id) : undefined,
-          itemId: String(r.item_id),
-          quantity: Number(r.quantity),
-          totalPrice: Number(r.total_price),
+          itemId: r.item_id ? String(r.item_id) : 'unknown',
+          quantity: Number(r.quantity || 0),
+          totalPrice: Number(r.total_price || 0),
           // تحويل المسافة إلى T لضمان التوافق مع متصفحات الموبايل
           timestamp: new Date(String(r.created_at).replace(' ', 'T')),
           note: r.note,
@@ -149,16 +152,20 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   },
 
   getLowStockItems: (warehouseId) => {
-    const { items } = get();
+    const { items, warehouses, getItemStock } = get();
+    // لتطبيق المركزية: العيادات لا تملك مخزوناً مستقلاً وبالتالي لا تظهر لها نواقص
+    const wh = warehouses.find(w => w.id === warehouseId);
+    if (wh?.type !== 'main' && warehouseId !== '1') return [];
+
     return items
       .map(item => {
-        const quantity = get().getItemStock(warehouseId, item.id);
+        const quantity = getItemStock(warehouseId, item.id);
         return { item, quantity, warehouseId, itemId: item.id };
       })
       .filter(r => r.quantity <= r.item.minLimit);
   },
 
-  dispenseItem: async (fromWarehouseId, itemId, quantity, unit, toWarehouseId) => {
+  dispenseItem: async (fromWarehouseId, itemId, quantity, unit, toWarehouseId, type = 'dispense', notes, date) => {
     const state = get();
     const item = state.getItemById(itemId);
     if (!item) return { success: false, message: 'الصنف غير موجود' };
@@ -179,13 +186,14 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
 
     const tempTx: Transaction = {
       id: tempTxId,
-      type: 'dispense',
+      type: type as any,
       fromWarehouseId,
       toWarehouseId, // Record target clinic
       itemId,
       quantity: finalQty,
       totalPrice,
-      timestamp: new Date(),
+      timestamp: date ? new Date(date) : new Date(),
+      note: notes
     };
 
     set({
@@ -204,7 +212,10 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
         p_item_id: Number(itemId),
         p_qty: finalQty,
         p_total_cost: totalPrice,
-        p_to_warehouse_id: toWarehouseId ? Number(toWarehouseId) : null
+        p_to_warehouse_id: toWarehouseId ? Number(toWarehouseId) : null,
+        p_type: type === 'adjustment' ? 'تسوية' : 'صرف',
+        p_note: notes || null,
+        p_date: date || null
       });
 
 
@@ -416,8 +427,7 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     set({ isLoading: true });
     try {
       // حذف كافة الحركات من جدول transactions في Supabase
-      // نستخدم شرطاً دائماً لمسح كافة البيانات (neq id to a random uuid)
-      const { error } = await supabase.from('transactions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      const { error } = await supabase.from('transactions').delete().neq('id', 0);
       if (error) throw error;
 
       await get().fetchData();
@@ -425,6 +435,111 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
       throw error;
+    }
+  },
+
+  saveSnapshot: async () => {
+    try {
+      set({ isLoading: true });
+      const { inventory } = get();
+      // تخزين الحالة الحالية في localStorage كمرجع مؤقت سريع
+      localStorage.setItem('inventory_snapshot', JSON.stringify(inventory));
+      set({ isLoading: false });
+    } catch (e: any) {
+      set({ error: e.message, isLoading: false });
+      throw e;
+    }
+  },
+
+  restoreFromSnapshot: async () => {
+    try {
+      set({ isLoading: true });
+      const snapshotData = localStorage.getItem('inventory_snapshot');
+      if (!snapshotData) {
+        throw new Error('لا توجد لقطة محفوظة للعودة إليها. يرجى حفظ الحالة أولاً.');
+      }
+
+      const snapshot = JSON.parse(snapshotData) as InventoryRecord[];
+
+      // 1. مسح كافة الحركات الحالية لتنظيف السجل
+      await supabase.from('transactions').delete().neq('id', 0);
+
+      // 2. استعادة الكميات الأصلية في جدول inventory
+      for (const record of snapshot) {
+        // نستخدم upsert لضمان التحديث أو الإضافة إذا كان السجل مفقوداً
+        await supabase
+          .from('inventory')
+          .upsert({ 
+            warehouse_id: Number(record.warehouseId), 
+            item_id: Number(record.itemId), 
+            quantity: record.quantity 
+          });
+      }
+
+      await get().fetchData();
+      set({ isLoading: false });
+      return { success: true, message: 'تم استعادة الحالة المرجعية بنجاح ومسح كافة تجاربك.' };
+    } catch (e: any) {
+      set({ error: e.message, isLoading: false });
+      return { success: false, message: e.message };
+    }
+  },
+
+  reverseTransaction: async (txId: string) => {
+    const { transactions, inventory, getItemStock, fetchData } = get();
+    const tx = transactions.find(t => t.id === txId);
+    if (!tx) return { success: false, message: 'الحركة غير موجودة' };
+
+    try {
+      set({ isLoading: true });
+
+      // 1. عكس الأثر المخزني بناءً على نوع الحركة
+      if (tx.type === 'add') {
+        const currentTo = getItemStock(tx.toWarehouseId!, tx.itemId);
+        await supabase.from('inventory')
+          .upsert({ 
+            warehouse_id: Number(tx.toWarehouseId), 
+            item_id: Number(tx.itemId), 
+            quantity: currentTo - tx.quantity 
+          });
+      } 
+      else if (tx.type === 'dispense' || tx.type === 'adjustment') {
+        const currentFrom = getItemStock(tx.fromWarehouseId!, tx.itemId);
+        await supabase.from('inventory')
+          .upsert({ 
+            warehouse_id: Number(tx.fromWarehouseId), 
+            item_id: Number(tx.itemId), 
+            quantity: currentFrom + tx.quantity 
+          });
+      }
+      else if (tx.type === 'transfer') {
+        const currentFrom = getItemStock(tx.fromWarehouseId!, tx.itemId);
+        const currentTo = getItemStock(tx.toWarehouseId!, tx.itemId);
+        
+        await Promise.all([
+          supabase.from('inventory').upsert({ 
+            warehouse_id: Number(tx.fromWarehouseId), 
+            item_id: Number(tx.itemId), 
+            quantity: currentFrom + tx.quantity 
+          }),
+          supabase.from('inventory').upsert({ 
+            warehouse_id: Number(tx.toWarehouseId), 
+            item_id: Number(tx.itemId), 
+            quantity: currentTo - tx.quantity 
+          })
+        ]);
+      }
+
+      // 2. حذف سجل الحركة نهائياً
+      const { error: delErr } = await supabase.from('transactions').delete().eq('id', Number(txId));
+      if (delErr) throw delErr;
+
+      await fetchData();
+      set({ isLoading: false });
+      return { success: true, message: 'تم التراجع عن العملية بنجاح وإرجاع الكميات.' };
+    } catch (err: any) {
+      set({ isLoading: false });
+      return { success: false, message: err.message || 'حدث خطأ أثناء التراجع' };
     }
   }
 }));

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useInventoryStore } from '@/store/inventoryStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,14 +6,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Check, Search, PlusCircle } from 'lucide-react';
+import { AlertTriangle, Check, Search, PlusCircle, History, Undo2, ArrowUpRight, Boxes, Package2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ItemSearchField } from '@/components/ItemSearchField';
+import { format, isSameDay } from 'date-fns';
+import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DispensePage() {
-  const { warehouses, items, getItemStock, getWarehouseItems, dispenseItem, isLoading, error } = useInventoryStore();
+  const { warehouses, items, transactions, getItemStock, getWarehouseItems, dispenseItem, reverseTransaction, isLoading, error } = useInventoryStore();
   const { toast } = useToast();
   
   const clinics = warehouses.filter(w => w.type === 'clinic');
@@ -24,9 +36,9 @@ export default function DispensePage() {
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState<'piece' | 'box'>('piece');
   const [submitting, setSubmitting] = useState(false);
+  const [returnTxId, setReturnTxId] = useState<string | null>(null);
 
   const selectedItemData = items.find(i => i.id === selectedItem);
-  // Always check stock from Main Warehouse
   const currentStock = selectedItem && mainWarehouse ? getItemStock(mainWarehouse.id, selectedItem) : 0;
   
   const isLowStock = selectedItemData ? currentStock <= selectedItemData.minLimit : false;
@@ -36,19 +48,23 @@ export default function DispensePage() {
   const totalCost = selectedItemData ? finalQty * selectedItemData.salePrice : 0;
   const insufficientStock = finalQty > currentStock;
 
+  // حركات الصرف لليوم فقط
+  const todaysDispenses = useMemo(() => {
+    return transactions.filter(tx => 
+      tx.type === 'dispense' && 
+      isSameDay(new Date(tx.timestamp), new Date())
+    );
+  }, [transactions]);
+
   const handleDispense = async () => {
     if (!selectedClinic || !selectedItem || !quantity || Number(quantity) <= 0) {
       toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول', variant: 'destructive' });
       return;
     }
     
-    if (!mainWarehouse) {
-      toast({ title: 'خطأ', description: 'المستودع الرئيسي غير موجود', variant: 'destructive' });
-      return;
-    }
+    if (!mainWarehouse) return;
 
     setSubmitting(true);
-    // Dispense from MAIN to CLINIC
     const result = await dispenseItem(mainWarehouse.id, selectedItem, Number(quantity), unit, selectedClinic);
     setSubmitting(false);
     
@@ -61,147 +77,259 @@ export default function DispensePage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-8 animate-fade-in max-w-2xl">
-        <div>
-          <h1 className="text-3xl font-bold">صرف صنف</h1>
-          <p className="text-muted-foreground mt-1">جاري التحميل...</p>
-        </div>
-        <Skeleton className="h-64 rounded-xl" />
-      </div>
-    );
-  }
+  const handleReturn = async (txId: string) => {
+    try {
+      const res = await reverseTransaction(txId);
+      if (res.success) {
+        toast({ title: 'تم الإرجاع', description: 'تم إعادة الكمية للمخزن الرئيسي بنجاح' });
+      } else {
+        toast({ title: 'خطأ', description: res.message, variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'خطأ', description: e.message, variant: 'destructive' });
+    } finally {
+      setReturnTxId(null);
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="space-y-8 animate-fade-in max-w-2xl">
-        <div className="p-8 bg-destructive/10 border border-destructive rounded-xl text-center">
-          <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-destructive mb-2">حدث خطأ أثناء جلب البيانات</h2>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>إعادة المحاولة</Button>
-        </div>
-      </div>
-    );
-  }
-
+  if (isLoading) return <div className="p-8 space-y-4 opacity-30"><Skeleton className="h-10 w-48 rounded-xl" /><Skeleton className="h-96 w-full rounded-2xl" /></div>;
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-2xl">
-      <div>
-        <h1 className="text-3xl font-bold">صرف صنف للموقع</h1>
-        <p className="text-muted-foreground mt-1">يتم الصرف مباشرة من المستودع الرئيسي للعيادة المختارة</p>
+    <div className="p-4 md:p-6 space-y-6 animate-fade-in bg-slate-50/10 min-h-screen" dir="rtl">
+      
+      {/* الرأس */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="bg-emerald-600 p-2.5 rounded-2xl rotate-3 shadow-xl shadow-emerald-200">
+            <ArrowUpRight className="w-8 h-8 text-white -rotate-3" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tighter">صرف عهدة يومية</h1>
+            <p className="text-muted-foreground font-bold text-sm italic">توزيع المواد والتعامل مع المرتجعات</p>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>بيانات الصرف المباشر</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>العيادة المستلمة</Label>
-            <Select value={selectedClinic} onValueChange={setSelectedClinic}>
-              <SelectTrigger><SelectValue placeholder="اختر العيادة..." /></SelectTrigger>
-              <SelectContent>
-                {clinics.length === 0 ? (
-                  <p className="p-2 text-sm text-center text-muted-foreground">لا توجد عيادات مسجلة</p>
-                ) : (
-                  clinics.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>ابحث عن الصنف (من المستودع الرئيسي)</Label>
-            <ItemSearchField
-              items={mainWarehouse ? getWarehouseItems(mainWarehouse.id).map(r => r.item) : []}
-              selectedItemId={selectedItem}
-              onSelect={setSelectedItem}
-              warehouseId={mainWarehouse?.id || ''}
-              getItemStock={getItemStock}
-            />
-          </div>
-
-          {selectedItem && selectedItemData && (
-            <>
-              <div className={`p-4 rounded-lg border ${isLowStock ? 'border-destructive bg-destructive/5' : 'border-success bg-success/5'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {isLowStock ? <AlertTriangle className="w-5 h-5 text-destructive" /> : <Check className="w-5 h-5 text-success" />}
-                    <span className="font-medium">{selectedItemData.name}</span>
-                  </div>
-                  <span className="font-bold">رصيد المستودع: {currentStock} قطعة</span>
-                </div>
-                {isLowStock && (
-                  <p className="text-sm text-destructive mt-2">⚠️ رصيد المستودع الرئيسي تحت الحد الأدنى ({selectedItemData.minLimit} قطعة).</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        
+        {/* نموذج الصرف - الجهة اليمنى */}
+        <div className="xl:col-span-2 space-y-6">
+          <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white/80 backdrop-blur-xl">
+            <CardHeader className="p-6 border-b bg-emerald-50/30">
+              <CardTitle className="text-lg font-black text-emerald-900 flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-emerald-600" /> صرف جديد
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>الكمية</Label>
-                  <Input type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)} placeholder="أدخل الكمية" />
-                </div>
-                <div className="space-y-2">
-                  <Label>الوحدة</Label>
-                  <Select value={unit} onValueChange={v => setUnit(v as 'piece' | 'box')}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="piece">قطعة</SelectItem>
-                      {selectedItemData.conversionFactor > 1 && (
-                        <SelectItem value="box">علبة ({selectedItemData.conversionFactor} قطعة)</SelectItem>
-                      )}
+                  <Label className="font-black text-slate-500 mr-1 uppercase text-[10px] tracking-tight">العيادة المستلمة</Label>
+                  <Select value={selectedClinic} onValueChange={setSelectedClinic}>
+                    <SelectTrigger className="h-10 rounded-xl font-black text-sm border-2">
+                      <SelectValue placeholder="اختر العيادة..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {clinics.map(c => <SelectItem key={c.id} value={c.id} className="font-bold">{c.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="font-black text-slate-500 mr-1 uppercase text-[10px] tracking-tight">ابحث عن الصنف</Label>
+                  <ItemSearchField
+                    items={items}
+                    selectedItemId={selectedItem}
+                    onSelect={setSelectedItem}
+                    warehouseId={mainWarehouse?.id || ''}
+                    getItemStock={getItemStock}
+                    className="h-10 font-black shadow-sm"
+                  />
+                </div>
               </div>
 
-              {quantity && Number(quantity) > 0 && (
-                <div className={`p-4 rounded-lg ${insufficientStock ? 'bg-destructive/10 border border-destructive' : 'bg-muted'}`}>
-                  {insufficientStock ? (
-                    <div className="space-y-4">
-                      <p className="text-destructive font-medium">❌ لا يوجد رصيد كافٍ في المستودع الرئيسي. المتاح {currentStock} قطعة فقط.</p>
-                      <Button asChild variant="outline" className="w-full gap-2 border-destructive text-destructive hover:bg-destructive/10">
-                        <Link to="/reports">
-                          <PlusCircle className="w-4 h-4" /> مراجعة النواقص في التقارير
-                        </Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">الكمية بالقطعة</span>
-                        <span className="font-medium">{finalQty} قطعة</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">سعر القطعة</span>
-                        <span className="font-medium">{selectedItemData.salePrice} ريال</span>
-                      </div>
-                      <div className="flex justify-between font-bold border-t border-border pt-1 mt-1">
-                        <span>إجمالي التكلفة</span>
-                        <span className="text-primary">{totalCost.toLocaleString()} ريال</span>
-                      </div>
-                    </div>
-                  )}
+              {selectedItemData && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end animate-slide-in">
+                  <div className="md:col-span-1 space-y-2">
+                    <Label className="font-black text-slate-500 mr-1 uppercase text-[10px]">الكمية</Label>
+                    <Input type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)} className="h-10 rounded-xl text-center text-xl font-black border-2" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black text-slate-500 mr-1 uppercase text-[10px]">الوحدة</Label>
+                    <Select value={unit} onValueChange={v => setUnit(v as any)}>
+                      <SelectTrigger className="h-10 rounded-xl font-black border-2"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="piece" className="font-bold">قطعة</SelectItem>
+                        {selectedItemData.conversionFactor > 1 && (
+                          <SelectItem value="box" className="font-bold">علبة ({selectedItemData.conversionFactor} قطعة)</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleDispense} 
+                    disabled={submitting || insufficientStock} 
+                    className="h-10 rounded-xl font-black text-sm bg-emerald-600 hover:bg-emerald-700 transition-all active:scale-95"
+                  >
+                    {submitting ? 'جاري الصرف' : 'تأكيد الصرف'}
+                  </Button>
                 </div>
               )}
 
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!selectedClinic || !quantity || Number(quantity) <= 0 || insufficientStock || submitting}
-                onClick={handleDispense}
-              >
-                {submitting ? 'جاري الصرف...' : 'تأكيد الصرف المباشر'}
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              {selectedItem && (
+                <div className={cn(
+                  "p-4 rounded-3xl border-2 transition-all flex flex-col md:flex-row justify-between items-center gap-4",
+                  insufficientStock ? "bg-rose-50 border-rose-100" : "bg-slate-50 border-slate-100"
+                )}>
+                  <div className="text-center md:text-right">
+                    <p className="text-[10px] font-bold text-slate-400">الرصيد المتاح</p>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("text-2xl font-black", insufficientStock ? "text-rose-600" : "text-emerald-600")}>{currentStock}</span>
+                      <span className="text-[10px] font-bold opacity-40">قطعة</span>
+                    </div>
+                  </div>
+                  <div className="h-px md:h-8 w-full md:w-px bg-slate-200" />
+                  <div className="text-center md:text-left">
+                    <p className="text-[10px] font-bold text-slate-400">إجمالي التكلفة</p>
+                    <div className="flex items-center gap-2">
+                       <span className="text-2xl font-black text-slate-800">{totalCost.toLocaleString()}</span>
+                       <span className="text-[10px] font-bold opacity-40">ر.س</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* سجل حركات اليوم للصرف - المرتجعات */}
+          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white/50 border border-white">
+            <CardHeader className="p-8 border-b bg-slate-50/50">
+              <CardTitle className="text-xl font-black text-slate-800 flex items-center gap-3">
+                <History className="w-6 h-6 text-slate-400" /> حركات الصرف لليوم (المرتجع اليومي)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+               <div className="overflow-x-auto">
+                <table className="w-full text-right">
+                  <thead className="bg-slate-100/50 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                    <tr>
+                      <th className="p-6">الصنف المستلم</th>
+                      <th className="p-6">العيادة</th>
+                      <th className="p-6 text-center">الكمية</th>
+                      <th className="p-6 text-center">التوقيت</th>
+                      <th className="p-6 text-left">الإجراء</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {todaysDispenses.map(tx => {
+                      const item = items.find(i => i.id === tx.itemId);
+                      const clinic = warehouses.find(w => w.id === tx.toWarehouseId);
+                      return (
+                        <tr key={tx.id} className="group hover:bg-slate-50 transition-colors">
+                          <td className="p-3 px-6 flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white rounded-lg border flex items-center justify-center font-mono text-[9px] font-black text-slate-400">{item?.id}</div>
+                            <span className="font-bold text-slate-700 text-sm">{item?.name}</span>
+                          </td>
+                          <td className="p-3 text-center">
+                            <Badge variant="secondary" className="rounded-md font-bold bg-slate-100 text-slate-600 border-none text-[10px]">{clinic?.name}</Badge>
+                          </td>
+                          <td className="p-3 text-center font-black text-slate-800 text-md">
+                            {tx.quantity} <span className="text-[8px] opacity-30 italic">{item?.unitType}</span>
+                          </td>
+                          <td className="p-3 text-center text-[10px] font-bold text-slate-400 tabular-nums">
+                            {format(tx.timestamp, 'HH:mm')}
+                          </td>
+                          <td className="p-3 text-left">
+                            <Button 
+                              variant="ghost" 
+                              onClick={() => setReturnTxId(tx.id)} 
+                              className="rounded-lg h-9 px-3 font-black text-rose-500 hover:bg-rose-50 gap-1.5 transition-all text-xs"
+                            >
+                              <Undo2 className="w-4 h-4" /> إرجاع
+                            </Button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {todaysDispenses.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-20 text-center text-slate-300 font-bold italic">لا توجد حركات صرف مسجلة اليوم حتى الآن</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ملخص العهود - الجهة اليسرى */}
+        <div className="space-y-6">
+           <Card className="border-none shadow-xl rounded-[2.5rem] bg-emerald-600 text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
+            <CardHeader className="relative z-10 p-6 pb-0">
+               <CardTitle className="text-sm font-black opacity-80 uppercase text-emerald-100 italic">إجمالي صرف اليوم</CardTitle>
+            </CardHeader>
+            <CardContent className="relative z-10 p-6">
+               <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-5xl font-black tabular-nums">{todaysDispenses.reduce((acc, curr) => acc + curr.totalPrice, 0).toLocaleString()}</span>
+                  <span className="text-sm font-bold opacity-60">ر.س</span>
+               </div>
+               <div className="flex items-center gap-2 bg-white/10 p-3 rounded-2xl border border-white/10 text-xs text-white/90">
+                  <Package2 className="w-5 h-5" />
+                  <span className="font-bold">{todaysDispenses.length} عمليات مسجلة</span>
+               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-xl rounded-[2.5rem] bg-white p-6 space-y-4 overflow-hidden relative border border-slate-100">
+             <h3 className="font-black text-slate-400 text-[10px] uppercase tracking-widest">توزيع العهود</h3>
+             <div className="space-y-2">
+                {clinics.map(c => {
+                  const clinicTotal = todaysDispenses
+                    .filter(tx => tx.toWarehouseId === c.id)
+                    .reduce((acc, curr) => acc + curr.totalPrice, 0);
+                  if (clinicTotal === 0) return null;
+                  return (
+                    <div key={c.id} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100 group transition-all">
+                       <span className="font-bold text-slate-600 text-sm">{c.name}</span>
+                       <span className="text-md font-black text-emerald-600">{clinicTotal.toLocaleString()} <span className="text-[10px] opacity-40">ر.س</span></span>
+                    </div>
+                  );
+                })}
+                {todaysDispenses.length === 0 && <p className="text-center font-bold text-slate-200 italic py-6 text-sm">لا توجد عهود</p>}
+             </div>
+          </Card>
+        </div>
+      </div>
+
+      <AlertDialog open={!!returnTxId} onOpenChange={(open) => !open && setReturnTxId(null)}>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-3">
+              <div className="bg-rose-100 p-2 rounded-xl">
+                 <Undo2 className="w-6 h-6 text-rose-600" />
+              </div>
+              تأكيد إرجاع للمخزن
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-bold text-slate-500 pt-4 leading-relaxed">
+              هل أنتِ متأكدة من رغبتكِ في إرجاع هذا الصنف للمستودع الرئيسي؟ 
+              <br />
+              <span className="text-rose-500">سيتم حذف عملية الصرف تماماً من السجلات.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3 pt-6">
+            <AlertDialogCancel className="h-14 rounded-2xl font-black border-2 text-slate-400">إلغاء</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => returnTxId && handleReturn(returnTxId)}
+              className="h-14 rounded-2xl font-black bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-200"
+            >
+              نعم، إرجاع الآن
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <p className="text-[10px] font-black text-slate-200 text-center pb-10 uppercase tracking-[1rem]">Clinic Ops v3.0 - Premium Edition</p>
     </div>
   );
 }

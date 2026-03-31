@@ -27,11 +27,11 @@ const SearchSection = memo(({ onSearch }: { onSearch: (val: string) => void }) =
   };
 
   return (
-    <div className="relative flex-1 lg:w-96 group">
-      <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+    <div className="relative flex-1 lg:w-80 group">
+      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
       <Input 
-        placeholder="ابحث بسرعة البرق..." 
-        className="h-14 pr-12 rounded-2xl border-2 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-lg shadow-sm bg-white" 
+        placeholder="ابحث..." 
+        className="h-10 pr-10 rounded-xl border-2 font-bold text-sm bg-white" 
         value={localSearch} 
         onChange={handleChange} 
       />
@@ -58,58 +58,57 @@ const ItemCard = memo(({
 
   return (
     <Card className={cn(
-      "group relative overflow-hidden transition-all duration-300 border-none shadow-xl hover:shadow-2xl rounded-[2.5rem] bg-white",
-      isCritical ? "ring-2 ring-destructive/40 bg-destructive/5" : isWarning ? "ring-2 ring-amber-400/40 bg-amber-50/20" : ""
+      "group relative overflow-hidden transition-all duration-300 border-none shadow-lg hover:shadow-xl rounded-[1.5rem] bg-white",
+      isCritical ? "ring-1 ring-destructive/40 bg-destructive/5" : isWarning ? "ring-1 ring-amber-400/40 bg-amber-50/20" : ""
     )}>
-      <CardContent className="p-7">
-        <div className="flex justify-between items-start gap-4 mb-5">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start gap-2 mb-3">
           <div className="flex-1">
-            <h3 className="text-xl font-black text-slate-900 group-hover:text-primary transition-colors leading-tight mb-2">{item.name}</h3>
-            <span className="flex items-center gap-2 text-slate-400 font-mono text-[10px] font-bold bg-slate-50 px-2.5 py-1 rounded-lg w-fit border">
-              <BarcodeIcon className="w-3 h-3" />
+            <h3 className="text-sm font-black text-slate-900 group-hover:text-primary transition-colors leading-tight mb-1 truncate">{item.name}</h3>
+            <span className="flex items-center gap-1.5 text-slate-400 font-mono text-[8px] font-bold bg-slate-50 px-1.5 py-0.5 rounded-md w-fit border">
+              <BarcodeIcon className="w-2.5 h-2.5" />
               {item.id}
             </span>
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge className={cn(
-              "h-12 px-5 rounded-2xl text-2xl font-black shadow-lg border-none",
+              "h-8 px-3 rounded-lg text-lg font-black shadow-md border-none",
               isCritical ? "bg-destructive text-white" : isWarning ? "bg-amber-500 text-white" : "bg-emerald-500 text-white"
             )}>
               {total}
             </Badge>
-            <span className="text-[9px] font-black opacity-30 uppercase tracking-tighter">إجمالي الرصيد</span>
           </div>
         </div>
 
-        <div className="space-y-3 bg-white/60 backdrop-blur-sm p-5 rounded-3xl border border-slate-100 mb-6 shadow-inner">
-          <div className="flex justify-between items-center text-sm font-bold border-b border-dashed border-slate-200 pb-2">
-            <span className="text-slate-400">المخزن الرئيسي:</span>
-            <span className="text-primary text-base font-black bg-primary/5 px-3 py-1 rounded-xl">{stock.main}</span>
+        <div className="space-y-1.5 bg-white/60 backdrop-blur-sm p-3 rounded-2xl border border-slate-100 mb-4 shadow-inner">
+          <div className="flex justify-between items-center text-xs font-bold border-b border-dashed border-slate-200 pb-1.5">
+            <span className="text-slate-400">الرئيسي:</span>
+            <span className="text-primary text-sm font-black bg-primary/5 px-2 py-0.5 rounded-lg">{stock.main}</span>
           </div>
-          <div className="grid grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-2 gap-2 pt-0.5">
             {stock.clinics.map((c: any) => (
-              <div key={c.name} className="flex flex-col p-1.5 rounded-xl border border-transparent hover:border-slate-100 hover:bg-white transition-all">
-                <span className="text-[9px] font-black text-slate-300 uppercase truncate">{c.name}</span>
-                <span className={cn("font-black text-sm", c.qty > 0 ? "text-slate-700" : "text-slate-200")}>{c.qty}</span>
+              <div key={c.name} className="flex flex-col p-1 rounded-lg hover:bg-white transition-all">
+                <span className="text-[8px] font-black text-slate-300 uppercase truncate leading-none mb-0.5">{c.name}</span>
+                <span className={cn("font-black text-xs", c.qty > 0 ? "text-slate-700" : "text-slate-200")}>{c.qty}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center justify-between no-print mt-auto">
+        <div className="flex items-center justify-between no-print border-t pt-3 mt-auto">
           <div className="flex flex-col">
-             <span className="text-[9px] font-black text-slate-300 uppercase">سعر الحبة</span>
-             <span className="text-lg font-black text-emerald-600 leading-none">{item.salePrice.toFixed(2)} <span className="text-[10px]">ر.س</span></span>
+             <span className="text-[8px] font-black text-slate-300 uppercase leading-none">السعر</span>
+             <span className="text-md font-black text-emerald-600 leading-none">{item.salePrice.toFixed(2)} <span className="text-[8px]">ر.س</span></span>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1">
             <StockAdjustmentDialog itemId={item.id} itemName={item.name} />
-            <Button variant="ghost" size="icon" onClick={() => onEdit(item.id)} className="rounded-xl h-10 w-10 hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100">
-              <Pencil className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={() => onEdit(item.id)} className="rounded-lg h-8 w-8 hover:bg-blue-50 border border-transparent hover:border-blue-100">
+              <Pencil className="w-4 h-4" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100">
-                  <Trash2 className="w-5 h-5" />
+                <Button variant="ghost" size="icon" className="rounded-lg h-8 w-8 hover:bg-rose-50 border border-transparent hover:border-rose-100">
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent dir="rtl" className="rounded-[2.5rem] border-none shadow-2xl">
@@ -221,7 +220,8 @@ export default function ItemsPage() {
   }, [deleteItem, toast]);
 
   const filteredItems = useMemo(() => {
-    return items.filter(item => matchItem(item, searchTerm)).sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    return items.filter(item => matchItem(item, searchTerm))
+      .sort((a, b) => Number(a.id) - Number(b.id)); // الترتيب بالكود رقمياً
   }, [items, searchTerm]);
 
   const stockMap = useMemo(() => getStockMap(), [inventory, getStockMap]);
@@ -242,61 +242,61 @@ export default function ItemsPage() {
   if (isLoading) return <div className="p-8 space-y-4 opacity-30"><Skeleton className="h-10 w-48 rounded-2xl" /><Skeleton className="h-[500px] w-full rounded-[3rem]" /></div>;
 
   return (
-    <div className="p-4 md:p-10 space-y-10 animate-fade-in bg-slate-50/10 min-h-screen" dir="rtl">
+    <div className="p-4 md:p-6 space-y-6 animate-fade-in bg-slate-50/10 min-h-screen" dir="rtl">
       
       {/* رأس الصفحة الحديث */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 no-print">
-        <div className="flex items-center gap-5">
-          <div className="bg-primary p-3.5 rounded-[1.5rem] rotate-3 shadow-2xl shadow-primary/30 flex items-center justify-center">
-            <Boxes className="w-10 h-10 text-white -rotate-3" />
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 no-print">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary p-2.5 rounded-2xl rotate-3 shadow-xl shadow-primary/30 flex items-center justify-center">
+            <Boxes className="w-8 h-8 text-white -rotate-3" />
           </div>
           <div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight leading-none mb-1">الأصناف</h1>
-            <p className="text-muted-foreground font-bold text-lg">إدارة المخزون بدقة متناهية وسرعة خارقة</p>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-none mb-1">الأصناف</h1>
+            <p className="text-muted-foreground font-bold text-sm">إدارة المخزون بدقة وسرعة</p>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-4 w-full lg:w-auto">
+        <div className="flex flex-wrap gap-2 w-full lg:w-auto">
           <SearchSection onSearch={handleSearch} />
           <Button 
             onClick={() => setIsFormOpen(!isFormOpen)} 
-            className={cn("h-14 px-8 rounded-2xl font-black text-lg shadow-xl shadow-primary/20", isFormOpen ? "bg-slate-800" : "bg-primary")}
+            className={cn("h-10 px-6 rounded-xl font-black text-sm shadow-lg", isFormOpen ? "bg-slate-800" : "bg-primary")}
           >
-            {isFormOpen ? <ChevronUp className="w-6 h-6 ml-2" /> : <Plus className="w-6 h-6 ml-2" />}
-            {isFormOpen ? "إخفاء النموذج" : "صنف جديد"}
+            {isFormOpen ? <ChevronUp className="w-4 h-4 ml-2" /> : <Plus className="w-4 h-4 ml-2" />}
+            {isFormOpen ? "إخفاء" : "صنف جديد"}
           </Button>
         </div>
       </div>
 
       {/* نموذج الإدخال (قابل للطي لتوفير المساحة والسرعة) */}
       {isFormOpen && (
-        <Card className="border-none shadow-2xl rounded-[3rem] bg-white/80 backdrop-blur-xl overflow-hidden animate-slide-in no-print">
-          <CardContent className="p-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-               <div className="space-y-3">
-                <Label className="font-black text-slate-500 mr-2">الباركود</Label>
-                <Input placeholder="امسح الباركود..." className="h-12 border-2 rounded-2xl font-mono text-center" value={form.id} onChange={e => setForm(f => ({ ...f, id: e.target.value }))} disabled={!!editId} />
+        <Card className="border-none shadow-xl rounded-[2rem] bg-white/80 backdrop-blur-xl overflow-hidden animate-slide-in no-print">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+               <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">الباركود</Label>
+                <Input placeholder="..." className="h-10 border-2 rounded-xl font-mono text-center" value={form.id} onChange={e => setForm(f => ({ ...f, id: e.target.value }))} disabled={!!editId} />
               </div>
-              <div className="sm:col-span-1 lg:col-span-2 space-y-3">
-                <Label className="font-black text-slate-500 mr-2">اسم الصنف</Label>
-                <Input placeholder="اسم الصنف بالكامل..." className="h-12 border-2 rounded-2xl font-black text-lg focus:ring-4 focus:ring-primary/5" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <div className="sm:col-span-1 lg:col-span-2 space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">اسم الصنف</Label>
+                <Input placeholder="..." className="h-10 border-2 rounded-xl font-black text-md" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
               </div>
-              <div className="space-y-3">
-                <Label className="font-black text-slate-500 mr-2">سعر الشراء</Label>
-                <Input type="number" className="h-12 border-2 rounded-2xl font-black text-primary text-center bg-primary/5" value={form.purchasePrice} onChange={e => setForm(f => ({ ...f, purchasePrice: e.target.value }))} />
+              <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">سعر الشراء</Label>
+                <Input type="number" className="h-10 border-2 rounded-xl font-black text-primary text-center bg-primary/5" value={form.purchasePrice} onChange={e => setForm(f => ({ ...f, purchasePrice: e.target.value }))} />
               </div>
-               <div className="space-y-3">
-                <Label className="font-black text-slate-500 mr-2">سعر البيع</Label>
-                <Input type="number" className="h-12 border-2 rounded-2xl font-black text-emerald-600 text-center bg-emerald-50/5" value={form.salePrice} onChange={e => setForm(f => ({ ...f, salePrice: e.target.value }))} />
+               <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">سعر البيع</Label>
+                <Input type="number" className="h-10 border-2 rounded-xl font-black text-emerald-600 text-center bg-emerald-50/5" value={form.salePrice} onChange={e => setForm(f => ({ ...f, salePrice: e.target.value }))} />
               </div>
-               <div className="space-y-3">
-                <Label className="font-black text-slate-500 mr-2">الحد الأدنى</Label>
-                <Input type="number" className="h-12 border-2 rounded-2xl font-black text-rose-600 text-center" value={form.minLimit} onChange={e => setForm(f => ({ ...f, minLimit: e.target.value }))} />
+               <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">الحد الأدنى</Label>
+                <Input type="number" className="h-10 border-2 rounded-xl font-black text-rose-600 text-center" value={form.minLimit} onChange={e => setForm(f => ({ ...f, minLimit: e.target.value }))} />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-10 pt-8 border-t">
-              <Button variant="ghost" onClick={resetForm} className="h-14 px-8 rounded-2xl font-bold text-slate-400">إلغاء</Button>
-              <Button onClick={handleSave} disabled={submitting} className="h-14 px-14 rounded-2xl font-black text-lg bg-primary shadow-2xl shadow-primary/20">تأكيد الحفظ</Button>
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <Button variant="ghost" onClick={resetForm} className="h-10 px-6 rounded-xl font-bold text-slate-400">إلغاء</Button>
+              <Button onClick={handleSave} disabled={submitting} className="h-10 px-10 rounded-xl font-black text-md bg-primary shadow-lg">تأكيد الحفظ</Button>
             </div>
           </CardContent>
         </Card>
@@ -306,7 +306,7 @@ export default function ItemsPage() {
       {isPending && <div className="text-center font-bold text-primary animate-pulse py-4 font-mono">جاري تصفية النتائج بسرعة فائقة...</div>}
 
       {/* شبكة الأصناف الفائقة */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {filteredItems.map((item) => {
           const totalQty = warehouses.reduce((sum, wh) => sum + (stockMap[`${wh.id}-${item.id}`] || 0), 0);
           const clinics = warehouses.filter(w => w.type === 'clinic');

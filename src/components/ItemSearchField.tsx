@@ -40,7 +40,9 @@ export function ItemSearchField({
 
     const filteredItems = useMemo(() => {
         if (!searchTerm || (selectedItemId && searchTerm === selectedItem?.name)) return [];
-        return items.filter(i => matchItem(i, searchTerm)).slice(0, 10);
+        return items.filter(i => matchItem(i, searchTerm))
+            .sort((a, b) => Number(a.id) - Number(b.id))
+            .slice(0, 10);
     }, [items, searchTerm, selectedItemId, selectedItem]);
 
     useEffect(() => {

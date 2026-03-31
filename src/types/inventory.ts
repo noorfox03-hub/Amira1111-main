@@ -21,7 +21,7 @@ export interface InventoryRecord {
   quantity: number; // always stored in pieces
 }
 
-export type TransactionType = 'dispense' | 'add' | 'transfer';
+export type TransactionType = 'dispense' | 'add' | 'transfer' | 'adjustment';
 
 export interface Transaction {
   id: string;

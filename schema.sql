@@ -113,11 +113,11 @@ DROP FUNCTION IF EXISTS public.dispense_item_v1(integer, bigint, numeric, numeri
 
 -- 1. Dispense Item
 CREATE OR REPLACE FUNCTION public.dispense_item_v1(
-
   p_warehouse_id INTEGER,
   p_item_id BIGINT,
   p_qty NUMERIC,
   p_total_cost NUMERIC,
+  p_to_warehouse_id INTEGER DEFAULT NULL,
   p_note TEXT DEFAULT NULL
 ) RETURNS VOID AS $$
 BEGIN
@@ -125,8 +125,8 @@ BEGIN
   SET quantity = quantity - p_qty
   WHERE warehouse_id = p_warehouse_id AND item_id = p_item_id;
 
-  INSERT INTO public.transactions (type, from_warehouse_id, item_id, quantity, total_price, note)
-  VALUES ('صرف', p_warehouse_id, p_item_id, p_qty, p_total_cost, p_note);
+  INSERT INTO public.transactions (type, from_warehouse_id, to_warehouse_id, item_id, quantity, total_price, note)
+  VALUES ('صرف', p_warehouse_id, p_to_warehouse_id, p_item_id, p_qty, p_total_cost, p_note);
 END;
 $$ LANGUAGE plpgsql;
 

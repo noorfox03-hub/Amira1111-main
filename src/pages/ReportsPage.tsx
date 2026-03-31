@@ -28,23 +28,25 @@ import {
 
 
 // مكون فرعي لعرض تقرير مخزن/عيادة محددة
-function WarehouseReportSection({
+const WarehouseReportSection = ({
   warehouse,
   items,
   transactions,
   selectedDate,
   getItemStock,
-  warehouses
+  warehouses,
+  isSummary = false
 }: {
   warehouse: any,
   items: any[],
   transactions: any[],
   selectedDate: string,
   getItemStock: (wId: string, iId: string) => number,
-  warehouses: any[]
-}) {
+  warehouses: any[],
+  isSummary?: boolean
+}) => {
   const warehouseId = warehouse.id;
-  const isMainWarehouse = warehouseId === 'main';
+  const isMainWarehouse = warehouse.type === 'main';
 
   const itemReport = useMemo(() => {
     return items.map(item => {
@@ -159,131 +161,146 @@ function WarehouseReportSection({
             <p className="text-xl font-black text-success">{itemReport.filter(r => r.dispensed > 0).length} صنف</p>
           </CardContent>
         </Card>
-        <Card className="bg-accent/5 border-accent/20 shadow-none print:border-none">
-          <CardContent className="p-4">
-            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">تنبيهات المخزون</p>
-            <p className="text-xl font-black text-accent">{itemReport.filter(r => r.currentStock <= r.item.minLimit).length} صنف منخفض</p>
-          </CardContent>
-        </Card>
+        {isMainWarehouse && (
+          <Card className="bg-accent/5 border-accent/20 shadow-none print:border-none">
+            <CardContent className="p-4">
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1">تنبيهات المخزون</p>
+              <p className="text-xl font-black text-accent">{itemReport.filter(r => r.currentStock <= r.item.minLimit).length} صنف منخفض</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Consumption Table */}
-      <Card className="overflow-hidden shadow-sm border-2 print:border-none">
-        <CardHeader className="bg-muted/50 p-4 border-b">
-          <CardTitle className="text-lg">ملخص الاستهلاك والأسعار</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="table-responsive">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="text-right font-bold py-2 px-4 min-w-[180px]">الصنف</TableHead>
-                  <TableHead className="text-center font-bold px-2">الرصيد</TableHead>
-                  <TableHead className="text-center font-bold px-2">المصروف</TableHead>
-                  <TableHead className="text-center font-bold px-2">المضاف</TableHead>
-                  <TableHead className="text-center font-bold text-sky-600 px-4">تكلفة الاستهلاك</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {itemReport.map((report) => (
-                  <React.Fragment key={report.item.id}>
-                    <TableRow className="hover:bg-transparent border-b">
-                      <TableCell className="font-bold text-right py-3 px-4">{report.item.name}</TableCell>
-                      <TableCell className="text-center">{report.currentStock} {report.item.unitType === 'box' ? 'علبة' : 'قطعة'}</TableCell>
-                      <TableCell className="text-center text-destructive font-bold">{report.dispensed}</TableCell>
-                      <TableCell className="text-center text-success font-bold">{report.added}</TableCell>
-                      <TableCell className="text-center text-primary font-bold">{(report.totalCost).toLocaleString()} ريال</TableCell>
-                    </TableRow>
-                    {report.consumptionByClinic.length > 0 && (
-                      <TableRow className="bg-muted/10 print:bg-transparent">
-                        <TableCell colSpan={5} className="py-2 px-6">
-                          <div className="flex flex-wrap gap-2 text-[10px] md:text-xs">
-                            <span className="font-bold text-muted-foreground italic">تفاصيل السحب:</span>
-                            {report.consumptionByClinic.map(c => (
-                              <span key={c.name} className="bg-white border rounded-full px-2 py-0.5 shadow-sm print:shadow-none print:border-none">
-                                {c.name}: <span className="text-primary font-bold">{c.amount}</span>
-                              </span>
-                            ))}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))}
-                <TableRow className="bg-slate-50 font-black border-t-2 print:bg-slate-100">
-                  <TableCell colSpan={4} className="py-4 text-md text-left px-6 border-l">إجمالي تكلفة استهلاك {warehouse.name}:</TableCell>
-                  <TableCell className="text-center text-lg text-sky-600">{totalMonthlySpend.toLocaleString()} ريال</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Detailed Transaction Log */}
-      <Card className="shadow-none border-t-2 print:mt-4">
-        <CardHeader className="p-4"><CardTitle className="text-md flex items-center gap-2">تتبع الحركة اليومية</CardTitle></CardHeader>
-        <CardContent className="p-0">
-          <div className="table-responsive">
-            {filteredTransactions.length > 0 ? (
+      {!isSummary && (
+        <Card className="overflow-hidden shadow-sm border-2 print:border-none">
+          <CardHeader className="bg-muted/50 p-4 border-b">
+            <CardTitle className="text-lg">ملخص الاستهلاك والأسعار</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="table-responsive">
               <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow className="text-[11px]">
-                    <TableHead className="text-center py-1 px-2 whitespace-nowrap">التاريخ</TableHead>
-                    <TableHead className="text-center px-1">العملية</TableHead>
-                    <TableHead className="text-right px-4 min-w-[150px]">الصنف</TableHead>
-                    <TableHead className="text-center px-2">الكمية</TableHead>
-                    <TableHead className="text-center px-2">التكلفة</TableHead>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="text-right font-bold py-2 px-4 min-w-[180px]">الصنف</TableHead>
+                    <TableHead className="text-center font-bold px-2">الرصيد</TableHead>
+                    <TableHead className="text-center font-bold px-2">المصروف</TableHead>
+                    <TableHead className="text-center font-bold px-2">المضاف</TableHead>
+                    <TableHead className="text-center font-bold text-sky-600 px-4">تكلفة الاستهلاك</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions
-                    .map((t) => {
-                      const item = items.find(i => i.id === t.itemId);
-                      return (
-                        <TableRow key={t.id} className="text-[11px] border-b hover:bg-muted/20 transition-colors">
-                          <TableCell className="text-center whitespace-nowrap px-2 font-medium">{new Date(t.timestamp).toLocaleString('ar-EG', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge 
-                              variant={t.type === 'dispense' ? 'destructive' : t.type === 'add' ? 'success' : 'outline'} 
-                              className={cn(
-                                "text-[9px] px-2 py-0.5 h-auto mx-auto border-none shadow-sm",
-                                t.type === 'add' && "bg-emerald-500 text-white hover:bg-emerald-600",
-                                t.type === 'transfer' && "bg-sky-500 text-white hover:bg-sky-600",
-                                t.type === 'dispense' && "bg-rose-500 text-white hover:bg-rose-600"
-                              )}
-                            >
-                              {t.type === 'dispense' ? 'صرف' : t.type === 'add' ? 'إضافة' : 'تحويل'}
-                            </Badge>
+                  {itemReport.map((report) => (
+                    <React.Fragment key={report.item.id}>
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableCell className="font-bold text-right py-3 px-4">{report.item.name}</TableCell>
+                        <TableCell className="text-center">{report.currentStock} {report.item.unitType === 'box' ? 'علبة' : 'قطعة'}</TableCell>
+                        <TableCell className="text-center text-destructive font-bold">{report.dispensed}</TableCell>
+                        <TableCell className="text-center text-success font-bold">{report.added}</TableCell>
+                        <TableCell className="text-center text-primary font-bold">{(report.totalCost).toLocaleString()} ريال</TableCell>
+                      </TableRow>
+                      {report.consumptionByClinic.length > 0 && (
+                        <TableRow className="bg-muted/10 print:bg-transparent">
+                          <TableCell colSpan={5} className="py-2 px-6">
+                            <div className="flex flex-wrap gap-2 text-[10px] md:text-xs">
+                              <span className="font-bold text-muted-foreground italic">تفاصيل السحب:</span>
+                              {report.consumptionByClinic.map(c => (
+                                <span key={c.name} className="bg-white border rounded-full px-2 py-0.5 shadow-sm print:shadow-none print:border-none">
+                                  {c.name}: <span className="text-primary font-bold">{c.amount}</span>
+                                </span>
+                              ))}
+                            </div>
                           </TableCell>
-                          <TableCell className="font-black text-right px-4 text-slate-700">{item?.name}</TableCell>
-                          <TableCell className="text-center px-2 font-bold">{t.quantity}</TableCell>
-                          <TableCell className="text-center font-black px-2 text-primary">{t.totalPrice > 0 ? `${t.totalPrice.toLocaleString()} ريال` : '--'}</TableCell>
                         </TableRow>
-                      );
-                    })}
+                      )}
+                    </React.Fragment>
+                  ))}
+                  <TableRow className="bg-slate-50 font-black border-t-2 print:bg-slate-100">
+                    <TableCell colSpan={4} className="py-4 text-md text-left px-6 border-l">إجمالي تكلفة استهلاك {warehouse.name}:</TableCell>
+                    <TableCell className="text-center text-lg text-sky-600">{totalMonthlySpend.toLocaleString()} ريال</TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
-            ) : (
-              <div className="py-12 flex flex-col items-center justify-center text-muted-foreground bg-slate-50/50">
-                <RotateCcw className="w-10 h-10 mb-2 opacity-20" />
-                <p className="text-sm font-bold">لا توجد حركات مسجلة لهذه العيادة خلال شهر {selectedDate}</p>
-                <p className="text-xs opacity-60">تظهر هنا سجلات الصرف والإضافة عند تنفيذها</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {isSummary && (
+        <div className="border-2 border-primary/20 rounded-2xl p-6 bg-primary/5 flex justify-between items-center print:border-none print:bg-slate-50">
+          <p className="text-xl font-black text-primary">إجمالي تكلفة استهلاك {warehouse.name}:</p>
+          <p className="text-2xl font-black text-sky-600">{totalMonthlySpend.toLocaleString()} ريال</p>
+        </div>
+      )}
+
+      {/* Detailed Transaction Log */}
+      {!isSummary && (
+        <Card className="shadow-none border-t-2 print:mt-4">
+          <CardHeader className="p-4"><CardTitle className="text-md flex items-center gap-2">تتبع الحركة اليومية</CardTitle></CardHeader>
+          <CardContent className="p-0">
+            <div className="table-responsive">
+              {filteredTransactions.length > 0 ? (
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow className="text-[11px]">
+                      <TableHead className="text-center py-1 px-2 whitespace-nowrap">التاريخ</TableHead>
+                      <TableHead className="text-center px-1">العملية</TableHead>
+                      <TableHead className="text-right px-4 min-w-[150px]">الصنف</TableHead>
+                      <TableHead className="text-center px-2">الكمية</TableHead>
+                      <TableHead className="text-center px-2">التكلفة</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredTransactions
+                      .map((t) => {
+                        const item = items.find(i => i.id === t.itemId);
+                        return (
+                          <TableRow key={t.id} className="text-[11px] border-b hover:bg-muted/20 transition-colors">
+                            <TableCell className="text-center whitespace-nowrap px-2 font-medium">{new Date(t.timestamp).toLocaleString('ar-EG', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={(t.type === 'dispense' || t.type === 'صرف') ? 'destructive' : 'outline'} 
+                                className={cn(
+                                  "text-[9px] px-2 py-0.5 h-auto mx-auto border-none shadow-sm",
+                                  (t.type === 'add' || t.type === 'إضافة') && "bg-emerald-500 text-white hover:bg-emerald-600",
+                                  (t.type === 'transfer' || t.type === 'تحويل') && "bg-sky-500 text-white hover:bg-sky-600",
+                                  (t.type === 'dispense' || t.type === 'صرف') && "bg-rose-500 text-white hover:bg-rose-600"
+                                )}
+                              >
+                                {t.type === 'dispense' || t.type === 'صرف' ? 'صرف' : 
+                                 t.type === 'add' || t.type === 'إضافة' ? 'إضافة' : 'تحويل'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-black text-right px-4 text-slate-700">
+                              {item ? item.name : <span className="text-muted-foreground italic opacity-50">صنف غير معروف ({t.itemId})</span>}
+                            </TableCell>
+                            <TableCell className="text-center px-2 font-bold">{t.quantity}</TableCell>
+                            <TableCell className="text-center font-black px-2 text-primary">{t.totalPrice > 0 ? `${t.totalPrice.toLocaleString()} ريال` : '--'}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="py-12 flex flex-col items-center justify-center text-muted-foreground bg-slate-50/50">
+                  <RotateCcw className="w-10 h-10 mb-2 opacity-20" />
+                  <p className="text-sm font-bold">لا توجد حركات مسجلة لهذه العيادة خلال شهر {selectedDate}</p>
+                  <p className="text-xs opacity-60">تظهر هنا سجلات الصرف والإضافة عند تنفيذها</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Institutional Stamp Section for Print */}
-      <div className="hidden print:flex flex-row justify-between mt-12 px-6">
-        <div className="text-center">
-          <p className="font-bold text-xs mb-8">توقيع مسؤول {warehouse.name}</p>
-          <div className="border-t border-black w-32 mx-auto"></div>
-        </div>
+      <div className={cn(
+        "hidden print:flex flex-row justify-between px-6",
+        isSummary ? "mt-6" : "mt-12"
+      )}>
         <div className="text-center">
           <p className="font-bold text-sm mb-2 text-primary">الأستاذة أميرة / Ms. Amira</p>
-          <p className="font-bold text-xs mb-8">اعتماد الإدارة</p>
+          <p className="font-bold text-xs mb-8">توقيع مسؤولة</p>
           <div className="border-t-2 border-primary w-40 mx-auto"></div>
         </div>
       </div>
@@ -296,6 +313,7 @@ export default function ReportsPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isComprehensive, setIsComprehensive] = useState(false);
+  const [isSummaryView, setIsSummaryView] = useState(false);
 
   // حساب الإجماليات مسبقاً لتحسين الأداء (تراكمي حتى اليوم المختار)
   const grandSummary = useMemo(() => {
@@ -349,6 +367,7 @@ export default function ReportsPage() {
 
   const handlePrintComprehensive = () => {
     document.body.classList.add('is-printing-comprehensive');
+    setIsSummaryView(false); // تأكد من أنه شامل
     setIsComprehensive(true);
 
     // Wait for DOM to render the comprehensive view
@@ -357,6 +376,27 @@ export default function ReportsPage() {
       
       const cleanup = () => {
         document.body.classList.remove('is-printing-comprehensive');
+        setIsComprehensive(false);
+      };
+
+      window.addEventListener('afterprint', cleanup, { once: true });
+      // Fallback cleanup
+      setTimeout(cleanup, 500);
+    }, 1000);
+  };
+
+  const handlePrintSummary = () => {
+    document.body.classList.add('is-printing-comprehensive');
+    setIsSummaryView(true);
+    setIsComprehensive(true);
+
+    // Wait for DOM to render the summary view
+    setTimeout(() => {
+      window.print();
+      
+      const cleanup = () => {
+        document.body.classList.remove('is-printing-comprehensive');
+        setIsSummaryView(false);
         setIsComprehensive(false);
       };
 
@@ -383,11 +423,96 @@ export default function ReportsPage() {
           <Button variant="default" size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={handlePrintComprehensive}>
             <Printer className="w-4 h-4" /> طباعة التقرير الشامل
           </Button>
+          <Button variant="default" size="sm" className="gap-2 bg-sky-600 hover:bg-sky-700" onClick={handlePrintSummary}>
+            <Printer className="w-4 h-4" /> طباعة ملخص التكاليف
+          </Button>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => window.print()} disabled={!selectedWarehouse}>
             <Printer className="w-4 h-4" /> طباعة الحالي
           </Button>
         </div>
       </div>
+
+      {/* مركز تجربة الأنظمة - للأستاذة أميرة */}
+      <Card className="no-print border-2 border-dashed border-sky-400 bg-sky-50/30 overflow-hidden shadow-lg shadow-sky-100">
+        <CardHeader className="bg-sky-500/10 p-6 border-b border-sky-100">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl font-black text-sky-900 flex items-center gap-3">
+              <div className="bg-sky-500 p-2 rounded-xl"><RotateCcw className="w-6 h-6 text-white" /></div>
+              مركز تجربة الأنظمة - Ms. Amira
+            </CardTitle>
+            <Badge variant="outline" className="bg-white border-sky-200 text-sky-700 font-bold px-4 py-1">وضع الأمان مفعل</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <div className="w-2 h-8 bg-sky-500 rounded-full"></div>
+                تحكم في تجربتك بأمان
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                يمكنك الآن تجربة النظام (صرف، إضافة، تحويل) دون أي قلق. 
+                <span className="block mt-2 font-bold text-sky-700 underline underline-offset-4 decoration-sky-300">الخطوات المقترحة:</span>
+                1. اضغطي على "حفظ الحالة المرجعية" الآن (سيتم حفظ الأرقام الحالية كمرجع).<br/>
+                2. قومي بإجراء أي عمليات تجريبية في النظام.<br/>
+                3. عند الانتهاء، اضغطي على "استعادة الحالة الأصلية" ليعود كل شيء كما كان وتختفي تجاربك.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="h-14 text-lg font-black border-2 border-sky-200 bg-white hover:bg-sky-50 text-sky-700 shadow-sm transition-all active:scale-95"
+                onClick={async () => {
+                  const { saveSnapshot } = useInventoryStore.getState();
+                  await saveSnapshot();
+                  toast.success('تم حفظ حالة المخزون الحالية كمرجع بنجاح');
+                }}
+              >
+                ١. حفظ الحالة المرجعية (قبل البدء)
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="default" 
+                    size="lg" 
+                    className="h-14 text-lg font-black bg-sky-600 hover:bg-sky-700 shadow-xl shadow-sky-200 transition-all active:scale-95"
+                  >
+                    ٢. استعادة الحالة الأصلية ومسح التجارب
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="border-4 border-sky-100 rounded-3xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-2xl font-black text-sky-900">هل ترغبين في العودة للحالة الأصلية؟</AlertDialogTitle>
+                    <AlertDialogDescription className="text-md font-medium text-slate-600 leading-relaxed pt-2">
+                      سيقوم النظام الآن بمسح كافة حركات التجربة التي قمتِ بها في هذا الجلسة، وإعادة أرصدة الأصناف (مثل HAND SOAP وغيره) إلى الأرقام التي كانت عليها وقت ضغطك على "حفظ الحالة المرجعية".
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="mt-6 gap-3">
+                    <AlertDialogCancel className="h-12 font-bold px-6">إلغاء</AlertDialogCancel>
+                    <AlertDialogAction 
+                      className="h-12 font-black px-10 bg-sky-600 hover:bg-sky-700 text-white"
+                      onClick={async () => {
+                        const { restoreFromSnapshot } = useInventoryStore.getState();
+                        const result = await restoreFromSnapshot();
+                        if (result.success) {
+                          toast.success(result.message);
+                        } else {
+                          toast.error(result.message);
+                        }
+                      }}
+                    >
+                      تأكيد استعادة الحالة
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters Case-only */}
       <Card className="no-print">
@@ -436,8 +561,12 @@ export default function ReportsPage() {
               </AlertDialogContent>
             </AlertDialog>
 
-            <Button variant="outline" onClick={handlePrintComprehensive}>
-              <Printer className="ml-2 h-4 w-4" />
+            <Button variant="outline" onClick={handlePrintSummary} className="gap-2 border-sky-200 hover:bg-sky-50">
+              <Printer className="h-4 w-4" />
+              طباعة ملخص التكاليف
+            </Button>
+            <Button variant="outline" onClick={handlePrintComprehensive} className="gap-2 border-green-200 hover:bg-green-50">
+              <Printer className="h-4 w-4" />
               طباعة التقرير الشامل
             </Button>
             <Button variant="outline" onClick={fetchData}>
@@ -476,7 +605,9 @@ export default function ReportsPage() {
         {/* Official Comprehensive Print Header */}
         <div className="hidden print:block text-center border-b-4 border-double border-primary pb-10 mb-12">
           <h1 className="text-4xl font-black text-primary mb-2">نظام إدارة مخازن العيادات</h1>
-          <p className="text-xl font-bold italic text-muted-foreground">التقرير الشامل وتدقيق التكاليف الشهرية</p>
+          <p className="text-xl font-bold italic text-muted-foreground">
+            {isSummaryView ? "ملخص تكاليف الاستهلاك الشهري" : "التقرير الشامل وتدقيق التكاليف الشهرية"}
+          </p>
           <div className="flex justify-center items-center gap-10 mt-6 text-sm font-bold bg-muted/30 py-3 rounded-full border border-dashed border-primary/20 max-w-2xl mx-auto">
             <p>الفترة: {selectedDate}</p>
             <p>عدد المواقع: {warehouses.length}</p>
@@ -493,6 +624,7 @@ export default function ReportsPage() {
               selectedDate={selectedDate}
               getItemStock={getItemStock}
               warehouses={warehouses}
+              isSummary={isSummaryView}
             />
           </div>
         ))}
@@ -526,7 +658,7 @@ export default function ReportsPage() {
               </div>
               <div>
                 <p className="font-bold text-sm mb-2 text-primary">الأستاذة أميرة / Ms. Amira</p>
-                <p className="font-bold text-sm mb-12 italic">اعتماد الإدارة العامة</p>
+                <p className="font-bold text-sm mb-12 italic">توقيع مسؤولة</p>
                 <div className="border-t-4 border-double border-primary w-48 mx-auto"></div>
               </div>
             </div>

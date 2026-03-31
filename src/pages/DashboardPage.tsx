@@ -138,7 +138,6 @@ export default function DashboardPage() {
                 <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
                 <Tooltip
                   cursor={{ fill: '#f1f5f9' }}
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', direction: 'rtl' }}
                 />
                 <Bar dataKey="spent" radius={[8, 8, 0, 0]} barSize={45}>
                   {stats?.consumptionByClinic.map((entry, index) => (
@@ -157,32 +156,75 @@ export default function DashboardPage() {
               الأعلى استهلاكاً (Top 5)
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 pt-0 space-y-6">
-            {stats?.itemConsumption.map((item, i) => (
-              <div key={item.id} className="space-y-2 group">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-bold text-slate-700 group-hover:text-primary transition-colors">{item.name}</span>
-                  <Badge variant="secondary" className="font-black">{item.qty} قطعة</Badge>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden shadow-inner">
-                  <div
-                    className={cn(
-                      "h-full rounded-full dynamic-width-bar",
-                      i === 0 ? "bg-sky-500" : i === 1 ? "bg-emerald-500" : "bg-slate-400"
-                    )}
-                    style={{ '--progress': `${Math.min(100, (item.qty / (stats.itemConsumption[0]?.qty || 1)) * 100)}%` } as React.CSSProperties}
-                  ></div>
-                </div>
-              </div>
-            ))}
-            {stats?.itemConsumption.length === 0 && <p className="text-center py-10 text-slate-400 font-medium italic">لا توجد حركات استهلاك</p>}
+          <CardContent className="p-6 h-[400px]">
+             {stats?.itemConsumption.length && stats.itemConsumption.length > 0 ? (
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart 
+                    layout="vertical" 
+                    data={stats.itemConsumption} 
+                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                 >
+                   <XAxis type="number" hide />
+                   <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      width={100}
+                      axisLine={false}
+                      tickLine={false}
+                      fontSize={11}
+                      fontWeight="bold"
+                    />
+                   <Tooltip cursor={{ fill: 'transparent' }} />
+                   <Bar dataKey="qty" radius={[0, 10, 10, 0]} barSize={20}>
+                      {stats.itemConsumption.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={index === 0 ? "#0ea5e9" : index === 1 ? "#10b981" : "#94a3b8"} />
+                      ))}
+                   </Bar>
+                 </BarChart>
+               </ResponsiveContainer>
+             ) : (
+               <div className="flex flex-col items-center justify-center h-full opacity-30 text-slate-400">
+                  <Activity className="w-12 h-12 mb-2" />
+                  <p className="font-bold">لا توجد حركات استهلاك</p>
+               </div>
+             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* تم إزالة بطاقات العيادات والمستودعات الفردية بناءً على طلب المركزية */}
+      {/* قسم التنبيهات الذكية - يظهر فقط في حال وجود نواقص */}
+      {getLowStockItems('1').length > 0 && (
+        <Card className="border-none shadow-xl shadow-orange-100/50 rounded-3xl overflow-hidden bg-gradient-to-br from-orange-50 to-white border-r-4 border-r-orange-500 animate-in fade-in zoom-in duration-500">
+          <CardHeader className="p-6 pb-2">
+            <CardTitle className="text-lg font-bold flex items-center gap-2 text-orange-700">
+              <AlertTriangle className="w-5 h-5" /> تنبيه: أصناف تحت الحد الأدنى
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {getLowStockItems('1').map(({ item, quantity }) => (
+                <div key={item.id} className="flex items-center justify-between p-3 rounded-2xl bg-white border border-orange-100 shadow-sm transition-all hover:border-orange-300">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-800 text-sm">{item.name}</span>
+                    <span className="text-[10px] text-muted-foreground italic">الحد الأدنى: {item.minLimit}</span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xl font-black text-orange-600">{quantity}</span>
+                    <span className="text-[9px] font-bold text-orange-400 capitalize">{item.unitType === 'box' ? 'علبة' : 'قطعة'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-[10px] text-orange-400 font-bold italic flex items-center gap-1">
+              * سيختفي التنبيه تلقائياً عند إضافة مخزون جديد لهذه الأصناف
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* تم إزالة بطاقة العيادات الفردية بناءً على طلب المركزية */}
       <div className="bg-sky-50/50 p-8 rounded-[2.5rem] border border-sky-100/50 text-center space-y-4">
-        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-sky-200/50">
+        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-sky-200/50 transition-transform hover:rotate-12 duration-500">
            <Warehouse className="w-8 h-8 text-sky-600" />
         </div>
         <div>
