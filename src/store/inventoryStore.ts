@@ -82,6 +82,11 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
           salePrice: Number(r.sale_price),
           vat: Number(r.vat || 0),
           minLimit: r.min_limit,
+          cartonSize: r.carton_size,
+          bagSize: r.bag_size,
+          piecesPerCarton: r.pieces_per_carton,
+          piecesPerBag: r.pieces_per_bag,
+          unit: r.unit,
         })),
         warehouses: (whRes.data || []).map(r => ({ id: String(r.id), name: r.name, type: r.type as 'main' | 'clinic' })),
         inventory: (invRes.data || []).map(r => ({ warehouseId: String(r.warehouse_id), itemId: String(r.item_id), quantity: Number(r.quantity) })),
@@ -358,6 +363,11 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
       sale_price: itemData.salePrice,
       vat: itemData.vat,
       min_limit: itemData.minLimit,
+      carton_size: itemData.cartonSize || 0,
+      bag_size: itemData.bagSize || 0,
+      pieces_per_carton: itemData.piecesPerCarton || 1,
+      pieces_per_bag: itemData.piecesPerBag || 1,
+      unit: itemData.unit || 'قطعة',
     }).select().single();
 
     if (error) throw error;
@@ -374,6 +384,11 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
     if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
     if (updates.vat !== undefined) dbUpdates.vat = updates.vat;
     if (updates.minLimit !== undefined) dbUpdates.min_limit = updates.minLimit;
+    if (updates.cartonSize !== undefined) dbUpdates.carton_size = updates.cartonSize;
+    if (updates.bagSize !== undefined) dbUpdates.bag_size = updates.bagSize;
+    if (updates.piecesPerCarton !== undefined) dbUpdates.pieces_per_carton = updates.piecesPerCarton;
+    if (updates.piecesPerBag !== undefined) dbUpdates.pieces_per_bag = updates.piecesPerBag;
+    if (updates.unit !== undefined) dbUpdates.unit = updates.unit;
 
 
     const { error } = await supabase.from('items').update(dbUpdates).eq('id', id);

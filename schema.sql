@@ -17,11 +17,16 @@ CREATE TABLE public.items (
     item_name TEXT NOT NULL,
     item_group TEXT,                    -- (Dental, Dermatology, Lab, etc.)
     unit_type TEXT,                     -- (PK, BOX, PCS)
-    sale_price NUMERIC(10, 2) DEFAULT 0, -- Unit Cost
-    cost_price NUMERIC(10, 2) DEFAULT 0, -- Cost Price for profit calculation
+    sale_price NUMERIC(10, 2) DEFAULT 0, -- Unit Selling Price
+    cost_price NUMERIC(10, 2) DEFAULT 0, -- Unit Cost Price
     vat NUMERIC(5, 2) DEFAULT 0,        -- VAT Percentage
     min_limit INTEGER DEFAULT 5,          -- Stock alert threshold
-    conversion_factor INTEGER DEFAULT 1 -- Pieces per box
+    conversion_factor INTEGER DEFAULT 1, -- Pieces per box
+    carton_size INTEGER DEFAULT 0,
+    bag_size INTEGER DEFAULT 0,
+    pieces_per_carton INTEGER DEFAULT 1,
+    pieces_per_bag INTEGER DEFAULT 1,
+    unit TEXT DEFAULT 'قطعة'
 );
 
 -- 3. Inventory (Current Stock)

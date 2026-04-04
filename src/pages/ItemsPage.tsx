@@ -219,9 +219,23 @@ export default function ItemsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-
   const [searchTerm, setSearchTerm] = useState('');
-  const [form, setForm] = useState({ id: '', name: '', unitType: 'قطعة', conversionFactor: '1', purchasePrice: '', salePrice: '', vat: '0', minLimit: '5' });
+
+  const [form, setForm] = useState({ 
+    id: '', 
+    name: '', 
+    unitType: 'قطعة', 
+    conversionFactor: '1', 
+    purchasePrice: '', 
+    salePrice: '', 
+    vat: '0', 
+    minLimit: '5',
+    unit: 'قطعة',
+    cartonSize: '0',
+    bagSize: '0',
+    piecesPerCarton: '1',
+    piecesPerBag: '1'
+  });
 
   const handleSearch = useCallback((val: string) => {
     startTransition(() => {
@@ -230,7 +244,21 @@ export default function ItemsPage() {
   }, []);
 
   const resetForm = useCallback(() => {
-    setForm({ id: '', name: '', unitType: 'قطعة', conversionFactor: '1', purchasePrice: '', salePrice: '', vat: '0', minLimit: '5' });
+    setForm({ 
+      id: '', 
+      name: '', 
+      unitType: 'قطعة', 
+      conversionFactor: '1', 
+      purchasePrice: '', 
+      salePrice: '', 
+      vat: '0', 
+      minLimit: '5',
+      unit: 'قطعة',
+      cartonSize: '0',
+      bagSize: '0',
+      piecesPerCarton: '1',
+      piecesPerBag: '1'
+    });
     setEditId(null);
     setIsFormOpen(false);
   }, []);
@@ -239,7 +267,21 @@ export default function ItemsPage() {
     const item = items.find(i => i.id === id);
     if (!item) return;
     setEditId(id);
-    setForm({ id: item.id, name: item.name, unitType: item.unitType, conversionFactor: String(item.conversionFactor), purchasePrice: String(item.purchasePrice), salePrice: String(item.salePrice), vat: String(item.vat), minLimit: String(item.minLimit) });
+    setForm({ 
+      id: item.id, 
+      name: item.name, 
+      unitType: item.unitType, 
+      conversionFactor: String(item.conversionFactor), 
+      purchasePrice: String(item.purchasePrice), 
+      salePrice: String(item.salePrice), 
+      vat: String(item.vat), 
+      minLimit: String(item.minLimit),
+      unit: item.unit || 'قطعة',
+      cartonSize: String(item.cartonSize || 0),
+      bagSize: String(item.bagSize || 0),
+      piecesPerCarton: String(item.piecesPerCarton || 1),
+      piecesPerBag: String(item.piecesPerBag || 1)
+    });
     setIsFormOpen(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [items]);
@@ -258,7 +300,21 @@ export default function ItemsPage() {
 
   const handleSave = async () => {
     if (!form.id || !form.name || !form.purchasePrice || !form.salePrice) return;
-    const data: Item = { id: form.id, name: form.name, unitType: form.unitType, conversionFactor: Number(form.conversionFactor) || 1, purchasePrice: Number(form.purchasePrice), salePrice: Number(form.salePrice), vat: Number(form.vat) || 0, minLimit: Number(form.minLimit) || 0 };
+    const data: Item = { 
+      id: form.id, 
+      name: form.name, 
+      unitType: form.unitType, 
+      conversionFactor: Number(form.conversionFactor) || 1, 
+      purchasePrice: Number(form.purchasePrice), 
+      salePrice: Number(form.salePrice), 
+      vat: Number(form.vat) || 0, 
+      minLimit: Number(form.minLimit) || 0,
+      unit: form.unit,
+      cartonSize: Number(form.cartonSize) || 0,
+      bagSize: Number(form.bagSize) || 0,
+      piecesPerCarton: Number(form.piecesPerCarton) || 1,
+      piecesPerBag: Number(form.piecesPerBag) || 1
+    };
     setSubmitting(true);
     try {
       if (editId) await updateItem(editId, data);
@@ -319,9 +375,13 @@ export default function ItemsPage() {
                 <Label className="font-black text-slate-500 mr-1 text-xs">سعر البيع</Label>
                 <Input type="number" className="h-10 border-2 rounded-xl font-black text-emerald-600 text-center bg-emerald-50/5" value={form.salePrice} onChange={e => setForm(f => ({ ...f, salePrice: e.target.value }))} />
               </div>
-               <div className="space-y-1.5">
-                <Label className="font-black text-slate-500 mr-1 text-xs">الحد الأدنى</Label>
-                <Input type="number" className="h-10 border-2 rounded-xl font-black text-rose-600 text-center" value={form.minLimit} onChange={e => setForm(f => ({ ...f, minLimit: e.target.value }))} />
+              <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">الوحدة</Label>
+                <Input className="h-10 border-2 rounded-xl font-black text-center" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="font-black text-slate-500 mr-1 text-xs">قطع/الكرتونة</Label>
+                <Input type="number" className="h-10 border-2 rounded-xl font-black text-center" value={form.piecesPerCarton} onChange={e => setForm(f => ({ ...f, piecesPerCarton: e.target.value }))} />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6 pt-4 border-t">

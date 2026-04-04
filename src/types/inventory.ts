@@ -7,6 +7,11 @@ export interface Item {
   salePrice: number;        // Unit Selling Price
   vat: number;              // VAT percentage
   minLimit: number;         // minimum stock alert threshold (in pieces)
+  cartonSize?: number;
+  bagSize?: number;
+  piecesPerCarton?: number;
+  piecesPerBag?: number;
+  unit?: string;
 }
 
 export interface Warehouse {
