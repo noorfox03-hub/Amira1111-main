@@ -41,6 +41,7 @@ interface InventoryStore {
   // System Actions
   resetTransactions: () => Promise<void>;
   reverseTransaction: (transactionId: string) => Promise<{ success: boolean; message: string }>;
+  deleteTransaction: (transactionId: string) => Promise<{ success: boolean; message: string }>;
   saveSnapshot: () => Promise<void>;
   restoreFromSnapshot: () => Promise<{ success: boolean; message: string }>;
 }
@@ -559,6 +560,21 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
     } catch (err: any) {
       set({ isLoading: false });
       return { success: false, message: err.message || 'حدث خطأ أثناء التراجع' };
+    }
+  },
+
+  deleteTransaction: async (txId: string) => {
+    try {
+      set({ isLoading: true });
+      const { error: delErr } = await supabase.from('transactions').delete().eq('id', Number(txId));
+      if (delErr) throw delErr;
+
+      await get().fetchData();
+      set({ isLoading: false });
+      return { success: true, message: 'تم مسح سجل الحركة بنجاح دون التأثير على المخزون.' };
+    } catch (err: any) {
+      set({ isLoading: false });
+      return { success: false, message: err.message || 'حدث خطأ أثناء المسح' };
     }
   }
 }));

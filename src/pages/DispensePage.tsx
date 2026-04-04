@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Check, Search, PlusCircle, History, Undo2, ArrowUpRight, Boxes, Package2 } from 'lucide-react';
+import { AlertTriangle, Check, Search, PlusCircle, History, Undo2, ArrowUpRight, Boxes, Package2, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function DispensePage() {
-  const { warehouses, items, transactions, getItemStock, getWarehouseItems, dispenseItem, reverseTransaction, isLoading, error } = useInventoryStore();
+  const { warehouses, items, transactions, getItemStock, getWarehouseItems, dispenseItem, reverseTransaction, deleteTransaction, isLoading, error } = useInventoryStore();
   const { toast } = useToast();
   
   const clinics = warehouses.filter(w => w.type === 'clinic');
@@ -37,6 +37,7 @@ export default function DispensePage() {
   const [unit, setUnit] = useState<'piece' | 'box'>('piece');
   const [submitting, setSubmitting] = useState(false);
   const [returnTxId, setReturnTxId] = useState<string | null>(null);
+  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
 
   const selectedItemData = items.find(i => i.id === selectedItem);
   const currentStock = selectedItem && mainWarehouse ? getItemStock(mainWarehouse.id, selectedItem) : 0;
@@ -90,6 +91,21 @@ export default function DispensePage() {
       toast({ title: 'خطأ', description: e.message, variant: 'destructive' });
     } finally {
       setReturnTxId(null);
+    }
+  };
+
+  const handleDelete = async (txId: string) => {
+    try {
+      const res = await deleteTransaction(txId);
+      if (res.success) {
+        toast({ title: 'تم المسح', description: 'تم مسح السجل بنجاح دون تغيير المخزون' });
+      } else {
+        toast({ title: 'خطأ', description: res.message, variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'خطأ', description: e.message, variant: 'destructive' });
+    } finally {
+      setDeleteTxId(null);
     }
   };
 
@@ -246,13 +262,20 @@ export default function DispensePage() {
                           <td className="p-3 text-center text-[10px] font-bold text-slate-400 tabular-nums">
                             {format(tx.timestamp, 'HH:mm')}
                           </td>
-                          <td className="p-3 text-left">
+                          <td className="p-3 text-left flex items-center gap-1">
                             <Button 
                               variant="ghost" 
                               onClick={() => setReturnTxId(tx.id)} 
                               className="rounded-lg h-9 px-3 font-black text-rose-500 hover:bg-rose-50 gap-1.5 transition-all text-xs"
                             >
                               <Undo2 className="w-4 h-4" /> إرجاع
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              onClick={() => setDeleteTxId(tx.id)} 
+                              className="rounded-lg h-9 w-9 p-0 font-black text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </td>
                         </tr>
@@ -310,6 +333,7 @@ export default function DispensePage() {
         </div>
       </div>
 
+      {/* حوار تأكيد الإرجاع */}
       <AlertDialog open={!!returnTxId} onOpenChange={(open) => !open && setReturnTxId(null)}>
         <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
           <AlertDialogHeader>
@@ -322,7 +346,7 @@ export default function DispensePage() {
             <AlertDialogDescription className="text-lg font-bold text-slate-500 pt-4 leading-relaxed">
               هل أنتِ متأكدة من رغبتكِ في إرجاع هذا الصنف للمستودع الرئيسي؟ 
               <br />
-              <span className="text-rose-500">سيتم حذف عملية الصرف تماماً من السجلات.</span>
+              <span className="text-rose-500">سيتم حذف عملية الصرف تماماً وتصحيح المخزون.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3 pt-6">
@@ -332,6 +356,34 @@ export default function DispensePage() {
               className="h-14 rounded-2xl font-black bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-200"
             >
               نعم، إرجاع الآن
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* حوار تأكيد المسح النهائي */}
+      <AlertDialog open={!!deleteTxId} onOpenChange={(open) => !open && setDeleteTxId(null)}>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black text-slate-800 tracking-tighter flex items-center gap-3">
+              <div className="bg-slate-100 p-2 rounded-xl">
+                 <Trash2 className="w-6 h-6 text-slate-600" />
+              </div>
+              تأكيد المسح النهائي
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg font-bold text-slate-500 pt-4 leading-relaxed">
+              هل أنتِ متأكدة من مسح هذا السجل؟ 
+              <br />
+              <span className="text-rose-500 font-black">تحذير: لن يتم استرجاع الكمية للمخزن، سيتم فقط مسح العملية من السجل.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3 pt-6">
+            <AlertDialogCancel className="h-14 rounded-2xl font-black border-2 text-slate-400">تراجع</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteTxId && handleDelete(deleteTxId)}
+              className="h-14 rounded-2xl font-black bg-slate-900 hover:bg-black shadow-xl"
+            >
+              تأكيد المسح
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
