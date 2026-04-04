@@ -165,7 +165,7 @@ export default function DoctorRequestsPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="text-right py-6 px-8 w-16">#</TableHead>
-                  <TableHead className="text-right">اسم الصنف</TableHead>
+                  <TableHead className="text-right font-black text-slate-900 min-w-[300px]">اسم الصنف</TableHead>
                   <TableHead className="text-center w-32">الكمية المطلوبة</TableHead>
                   <TableHead className="text-center w-32">الكمية المتوفرة</TableHead>
                   <TableHead className="text-center w-40">صورة توضيحية</TableHead>
@@ -185,8 +185,11 @@ export default function DoctorRequestsPage() {
                           placeholder="اكتب اسم الصنف أو ابحث عنه..."
                           value={item.itemName}
                           onChange={(e) => updateItem(item.id, 'itemName', e.target.value)}
-                          className="font-black text-slate-800 text-lg border-transparent bg-transparent hover:border-slate-200 focus:bg-white focus:border-primary/30 transition-all rounded-xl h-12"
+                          className="font-black text-slate-800 text-lg border-transparent bg-transparent hover:border-slate-200 focus:bg-white focus:border-primary/30 transition-all rounded-xl h-12 no-print"
                         />
+                        <div className="hidden print:block font-black text-slate-800 text-lg leading-6 py-2 px-1 min-h-[3rem] whitespace-normal break-words">
+                          {item.itemName || "...................................."}
+                        </div>
                         <datalist id={`items-list-${item.id}`}>
                           {items.map(i => <option key={i.id} value={i.name} />)}
                         </datalist>
@@ -324,9 +327,9 @@ export default function DoctorRequestsPage() {
           body { background: white !important; }
           .container { max-width: 100% !important; padding: 0 !important; width: 100% !important; }
           @page { margin: 15mm; size: A4; }
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #e2e8f0 !important; }
-          input { border: none !important; background: transparent !important; }
+          table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+          th, td { border: 1px solid #e2e8f0 !important; overflow: visible !important; }
+          input { border: none !important; background: transparent !important; height: auto !important; }
         }
       `}} />
     </div>
