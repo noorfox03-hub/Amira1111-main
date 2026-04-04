@@ -259,8 +259,8 @@ export default function DispensePage() {
                           <td className="p-3 text-center font-black text-slate-800 text-md">
                             {tx.quantity} <span className="text-[8px] opacity-30 italic">{item?.unitType}</span>
                           </td>
-                          <td className="p-3 text-center text-[10px] font-bold text-slate-400 tabular-nums">
-                            {format(tx.timestamp, 'HH:mm')}
+                          <td className="p-3 text-center text-[10px] font-black text-slate-500 tabular-nums">
+                            {format(tx.timestamp, 'dd/MM - HH:mm')}
                           </td>
                           <td className="p-3 text-left flex items-center gap-1">
                             <Button 
@@ -273,7 +273,7 @@ export default function DispensePage() {
                             <Button 
                               variant="ghost" 
                               onClick={() => setDeleteTxId(tx.id)} 
-                              className="rounded-lg h-9 w-9 p-0 font-black text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                              className="rounded-lg h-9 w-9 p-0 font-black text-rose-600 hover:bg-rose-100 transition-all shadow-sm"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
