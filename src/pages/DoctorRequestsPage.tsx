@@ -281,7 +281,7 @@ export default function DoctorRequestsPage() {
       {/* Footer / Signatures - Optimized for Print */}
       <footer className="mt-20 print:mt-16">
         <div className="grid grid-cols-3 gap-8 text-center px-4">
-          <div className="space-y-12">
+          <div className="space-y-4">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 mb-2 no-print">
                 <User className="w-6 h-6 text-slate-400" />
@@ -289,7 +289,10 @@ export default function DoctorRequestsPage() {
               <p className="font-black text-slate-800 text-lg">مسؤولة مخزن الفرع</p>
               <p className="text-xs text-muted-foreground opacity-60 no-print">الاسم والتوقيع</p>
             </div>
-            <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-xl font-black text-primary">اميرة ناصر</p>
+              <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
+            </div>
           </div>
 
           <div className="space-y-12">
@@ -303,7 +306,7 @@ export default function DoctorRequestsPage() {
             <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-12">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 mb-2 no-print">
                 <User className="w-6 h-6 text-slate-400" />
@@ -311,10 +314,7 @@ export default function DoctorRequestsPage() {
               <p className="font-black text-slate-800 text-lg">مسؤولة المستودع</p>
               <p className="text-xs text-muted-foreground opacity-60 no-print">الاسم والتوقيع</p>
             </div>
-            <div className="flex flex-col items-center gap-4">
-              <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
-              <p className="text-xl font-black text-primary pt-2">اميرة ناصر</p>
-            </div>
+            <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
           </div>
         </div>
 
