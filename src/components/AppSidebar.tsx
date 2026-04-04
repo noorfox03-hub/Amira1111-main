@@ -19,7 +19,7 @@ export const navItems = [
   { to: '/transfer', label: 'إضافة مخزون', icon: PackagePlus },
   { to: '/items', label: 'إدارة الأصناف', icon: Package },
   { to: '/clinics', label: 'إدارة العيادات', icon: Warehouse },
-  { to: '/doctor-requests', label: 'طلبات الدكاترة', icon: ClipboardList },
+  { to: '/doctor-requests', label: 'طلبات شهرية', icon: ClipboardList },
   { to: '/reports', label: 'التقارير', icon: FileBarChart },
   { to: '/shortage', label: 'الأصناف الناقصة', icon: TriangleAlert },
 ];

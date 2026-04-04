@@ -97,7 +97,7 @@ export default function DoctorRequestsPage() {
         <div className="animate-slide-in">
           <h1 className="text-3xl font-black text-primary flex items-center gap-3">
             <ClipboardList className="w-8 h-8" />
-            طلبات الدكاترة مخصصة
+            طلبات عن شهر
           </h1>
           <p className="text-muted-foreground font-medium mt-1">إنشاء قائمة طلبات يدوية منظمة للطباعة</p>
         </div>
@@ -131,7 +131,7 @@ export default function DoctorRequestsPage() {
             <ClipboardList className="w-10 h-10 text-primary" />
           </div>
         </div>
-        <h2 className="text-3xl font-black mb-4">طلب احتياجات (طلبات دكاترة)</h2>
+        <h2 className="text-3xl font-black mb-4">طلبات عن شهر</h2>
         <div className="flex justify-center items-center gap-10 text-lg font-bold">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
@@ -280,7 +280,7 @@ export default function DoctorRequestsPage() {
 
       {/* Footer / Signatures - Optimized for Print */}
       <footer className="mt-20 print:mt-16">
-        <div className="grid grid-cols-3 gap-8 text-center px-4">
+        <div className="grid grid-cols-2 gap-8 text-center px-4">
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 mb-2 no-print">
@@ -295,26 +295,20 @@ export default function DoctorRequestsPage() {
             </div>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-6">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 mb-2 no-print">
                 <ShieldCheck className="w-6 h-6 text-primary" />
               </div>
-              <p className="font-black text-slate-800 text-lg">المدير العام</p>
-              <p className="text-xs text-muted-foreground opacity-60 no-print">الاسم والتوقيع</p>
+              <p className="font-black text-slate-800 text-lg underline underline-offset-8 decoration-primary/30">المدير العام :</p>
             </div>
-            <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
-          </div>
-
-          <div className="space-y-12">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 mb-2 no-print">
-                <User className="w-6 h-6 text-slate-400" />
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-xl font-black text-primary">الاسم : د. حامد</p>
+              <div className="flex items-center gap-2 font-bold text-slate-600">
+                <span className="text-sm opacity-60">التوقيع:</span>
+                <div className="border-b-2 border-dotted border-slate-300 w-48 h-1 self-end mb-1"></div>
               </div>
-              <p className="font-black text-slate-800 text-lg">مسؤولة المستودع</p>
-              <p className="text-xs text-muted-foreground opacity-60 no-print">الاسم والتوقيع</p>
             </div>
-            <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
           </div>
         </div>
 
