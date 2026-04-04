@@ -303,7 +303,7 @@ export default function DoctorRequestsPage() {
             <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
           </div>
 
-          <div className="space-y-12">
+          <div className="space-y-8">
             <div className="flex flex-col items-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center border border-slate-200 mb-2 no-print">
                 <User className="w-6 h-6 text-slate-400" />
@@ -311,16 +311,15 @@ export default function DoctorRequestsPage() {
               <p className="font-black text-slate-800 text-lg">مسؤولة المستودع</p>
               <p className="text-xs text-muted-foreground opacity-60 no-print">الاسم والتوقيع</p>
             </div>
-            <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
+            <div className="flex flex-col items-center gap-4">
+              <div className="border-b-2 border-slate-200 w-48 mx-auto h-4"></div>
+              <p className="text-xl font-black text-primary pt-2">اميرة ناصر</p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-24 text-center">
-            <div className="inline-block relative">
-                <p className="text-2xl font-black text-primary relative z-10 px-8 py-3 rounded-2xl bg-primary/5 border border-primary/10">اميرة ناصر</p>
-                <div className="absolute -bottom-1 -right-1 w-full h-full bg-primary/10 rounded-2xl -z-0"></div>
-            </div>
-            <p className="text-[10px] font-bold text-muted-foreground/30 mt-12 no-print">تم إنشاء هذا التقرير عبر نظام إدارة المخازن المتكامل v2.0</p>
+        <div className="mt-12 text-center no-print">
+            <p className="text-[10px] font-bold text-muted-foreground/30 mt-12">تم إنشاء هذا التقرير عبر نظام إدارة المخازن المتكامل v2.0</p>
         </div>
       </footer>
 
