@@ -217,14 +217,22 @@ export default function DoctorRequestsPage() {
                       <div className="flex flex-col items-center justify-center gap-2">
                         {item.image ? (
                           <div className="relative group/img">
-                            <img 
-                              src={item.image} 
-                              alt="Item Preview" 
-                              className="w-16 h-16 object-cover rounded-xl border-2 border-primary/20 shadow-sm"
-                            />
+                            <a 
+                              href={item.image} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="cursor-zoom-in block"
+                              title="انقر لفتح الصورة بحجمها الكامل"
+                            >
+                              <img 
+                                src={item.image} 
+                                alt="Item Preview" 
+                                className="w-16 h-16 object-cover rounded-xl border-2 border-primary/20 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                              />
+                            </a>
                             <button 
                               onClick={() => updateItem(item.id, 'image', '')}
-                              className="absolute -top-2 -right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity no-print"
+                              className="absolute -top-2 -right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity no-print shadow-lg"
                             >
                               <X className="w-3 h-3" />
                             </button>
