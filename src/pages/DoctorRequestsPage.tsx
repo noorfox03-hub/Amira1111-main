@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,22 +218,48 @@ export default function DoctorRequestsPage() {
                       <div className="flex flex-col items-center justify-center gap-2">
                         {item.image ? (
                           <div className="relative group/img">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <div className="cursor-zoom-in block no-print" title="انقر لتكبير الصورة">
+                                  <img 
+                                    src={item.image} 
+                                    alt="Item Preview" 
+                                    className="w-16 h-16 object-cover rounded-xl border-2 border-primary/20 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                  />
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-[95vw] sm:max-w-[80vw] max-h-[90vh] p-1 bg-transparent border-none shadow-none flex items-center justify-center group/modal">
+                                {/* Custom Large Close Button */}
+                                <DialogClose className="fixed top-6 right-6 z-[100] bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all backdrop-blur-xl border border-white/10 shadow-2xl active:scale-95 group-hover/modal:scale-110">
+                                  <X className="w-10 h-10" />
+                                  <span className="sr-only">إغلاق</span>
+                                </DialogClose>
+                                
+                                <img 
+                                  src={item.image} 
+                                  alt="Full Size Preview" 
+                                  className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
+                                />
+                              </DialogContent>
+                            </Dialog>
+                            
+                            {/* PDF Link (Only for printing) */}
                             <a 
                               href={item.image} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="cursor-zoom-in block"
-                              title="انقر لفتح الصورة بحجمها الكامل"
+                              className="hidden print:block"
                             >
                               <img 
                                 src={item.image} 
                                 alt="Item Preview" 
-                                className="w-16 h-16 object-cover rounded-xl border-2 border-primary/20 shadow-sm transition-transform hover:scale-105 active:scale-95"
+                                className="w-16 h-16 object-cover rounded-xl border-2 border-primary/20 shadow-sm"
                               />
                             </a>
+
                             <button 
                               onClick={() => updateItem(item.id, 'image', '')}
-                              className="absolute -top-2 -right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity no-print shadow-lg"
+                              className="absolute -top-2 -right-2 bg-destructive text-white p-1 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity no-print shadow-lg z-10"
                             >
                               <X className="w-3 h-3" />
                             </button>
