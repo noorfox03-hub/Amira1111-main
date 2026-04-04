@@ -50,9 +50,10 @@ export default function DispensePage() {
 
   // حركات الصرف لليوم فقط
   const todaysDispenses = useMemo(() => {
+    const today = new Date();
     return transactions.filter(tx => 
       tx.type === 'dispense' && 
-      isSameDay(new Date(tx.timestamp), new Date())
+      isSameDay(tx.timestamp, today)
     );
   }, [transactions]);
 
@@ -114,11 +115,15 @@ export default function DispensePage() {
         
         {/* نموذج الصرف - الجهة اليمنى */}
         <div className="xl:col-span-2 space-y-6">
-          <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white/80 backdrop-blur-xl">
-            <CardHeader className="p-6 border-b bg-emerald-50/30">
-              <CardTitle className="text-lg font-black text-emerald-900 flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-emerald-600" /> صرف جديد
+          <Card className="border-none shadow-2xl rounded-[2.5rem] bg-white/90 backdrop-blur-2xl transition-all border border-white/50">
+            <CardHeader className="p-8 border-b bg-emerald-50/40">
+              <CardTitle className="text-2xl font-black text-emerald-950 flex items-center gap-3 tracking-tighter">
+                <div className="bg-emerald-100 p-2 rounded-xl">
+                   <PlusCircle className="w-6 h-6 text-emerald-600" />
+                </div>
+                بدء عملية صرف جديدة
               </CardTitle>
+              <p className="text-[10px] font-bold text-emerald-600/60 uppercase tracking-widest mr-11 -mt-1">قم بتعبئة البيانات لوصف حركة العهدة</p>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,15 +139,18 @@ export default function DispensePage() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="font-black text-slate-500 mr-1 uppercase text-[10px] tracking-tight">ابحث عن الصنف</Label>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-black text-slate-400 mr-1 uppercase text-[10px] tracking-[0.2em]">2. ابحث عن الصنف المطلوب</Label>
+                    {selectedItem && <Badge variant="outline" className="text-[9px] font-black border-slate-200 text-slate-400 rounded-full py-0">تم التحديد</Badge>}
+                  </div>
                   <ItemSearchField
                     items={items}
                     selectedItemId={selectedItem}
                     onSelect={setSelectedItem}
                     warehouseId={mainWarehouse?.id || ''}
                     getItemStock={getItemStock}
-                    className="h-10 font-black shadow-sm"
+                    className="h-12 font-black shadow-sm"
                   />
                 </div>
               </div>

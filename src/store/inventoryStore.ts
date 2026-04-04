@@ -92,14 +92,13 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
         inventory: (invRes.data || []).map(r => ({ warehouseId: String(r.warehouse_id), itemId: String(r.item_id), quantity: Number(r.quantity) })),
         transactions: (txRes.data || []).map(r => ({
           id: String(r.id),
-          type: r.type === 'صرف' ? 'dispense' : r.type === 'إضافة' ? 'add' : r.type === 'تحويل' ? 'transfer' : r.type,
+          type: (r.type?.trim() === 'صرف' ? 'dispense' : r.type?.trim() === 'إضافة' ? 'add' : r.type?.trim() === 'تحويل' ? 'transfer' : r.type?.trim()) as TransactionType,
           fromWarehouseId: r.from_warehouse_id ? String(r.from_warehouse_id) : undefined,
           toWarehouseId: r.to_warehouse_id ? String(r.to_warehouse_id) : undefined,
           itemId: r.item_id ? String(r.item_id) : 'unknown',
           quantity: Number(r.quantity || 0),
           totalPrice: Number(r.total_price || 0),
-          // تحويل المسافة إلى T لضمان التوافق مع متصفحات الموبايل
-          timestamp: new Date(String(r.created_at).replace(' ', 'T')),
+          timestamp: r.created_at ? new Date(String(r.created_at).replace(' ', 'T')) : new Date(),
           note: r.note,
         })),
 
