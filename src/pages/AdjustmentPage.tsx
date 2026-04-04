@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
-import { PackageMinus, Warehouse, Search, Calendar, Edit3, RotateCcw, AlertCircle, History, Trash2 } from 'lucide-react';
+import { PackageMinus, Warehouse, Search, Calendar, Edit3, RotateCcw, AlertCircle, History, Trash2, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ItemSearchField } from '@/components/ItemSearchField';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -156,15 +156,39 @@ export default function AdjustmentPage() {
                                 <Label className="font-bold flex items-center gap-1.5 text-xs text-slate-500">
                                     <PackageMinus className="w-3 h-3 text-sky-600" /> القيمة المطلوبة
                                 </Label>
-                                <div className="relative">
-                                    <Input
-                                        type="number"
-                                        value={quantity}
-                                        onChange={e => setQuantity(e.target.value)}
-                                        placeholder="0.00"
-                                        className="h-10 rounded-xl shadow-sm border-sky-100 text-md font-black text-center"
-                                    />
-                                    <div className="mt-1 text-[9px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            className="h-10 w-10 rounded-xl border-2 hover:bg-rose-50 hover:text-rose-600 transition-all shadow-sm shrink-0"
+                                            onClick={() => setQuantity(prev => {
+                                                const val = Number(prev) || 0;
+                                                return String(val - 1);
+                                            })}
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </Button>
+                                        <Input
+                                            type="number"
+                                            value={quantity}
+                                            onChange={e => setQuantity(e.target.value)}
+                                            placeholder="0.00"
+                                            className="h-10 rounded-xl shadow-sm border-sky-100 text-lg font-black text-center flex-1 bg-white"
+                                        />
+                                        <Button 
+                                            variant="outline" 
+                                            size="icon" 
+                                            className="h-10 w-10 rounded-xl border-2 hover:bg-emerald-50 hover:text-emerald-600 transition-all shadow-sm shrink-0"
+                                            onClick={() => setQuantity(prev => {
+                                                const val = Number(prev) || 0;
+                                                return String(val + 1);
+                                            })}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                    <div className="text-[9px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100 w-fit mx-auto shadow-sm">
                                         ضع (-) للزيادة
                                     </div>
                                 </div>

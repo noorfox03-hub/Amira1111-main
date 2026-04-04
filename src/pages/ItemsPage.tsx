@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Pencil, Trash2, Search, Barcode as BarcodeIcon, RotateCcw, PackagePlus, Boxes, LayoutGrid, List, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Minus, Pencil, Trash2, Search, Barcode as BarcodeIcon, RotateCcw, PackagePlus, Boxes, LayoutGrid, List, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Item } from '@/types/inventory';
 import { matchItem } from '@/lib/searchUtils';
@@ -167,7 +167,37 @@ const StockAdjustmentDialog = memo(({ itemId, itemName }: { itemId: string, item
           </Select>
           <div className="text-center bg-slate-50 p-6 rounded-[2rem] border-2 border-dashed border-slate-200">
             <p className="text-[10px] font-black opacity-30 mb-2 uppercase">الرصيد الحالي: {currentStock}</p>
-            <Input type="number" placeholder="مثال: 5 أو -5" value={quantity} onChange={e => setQuantity(e.target.value)} className="h-16 text-center text-3xl font-black rounded-2xl border-none shadow-inner bg-white" />
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-14 w-14 rounded-2xl border-2 hover:bg-rose-50 hover:text-rose-600 shadow-sm"
+                onClick={() => setQuantity(prev => {
+                  const val = Number(prev) || 0;
+                  return String(val - 1);
+                })}
+              >
+                <Minus className="w-6 h-6" />
+              </Button>
+              <Input 
+                type="number" 
+                placeholder="0" 
+                value={quantity} 
+                onChange={e => setQuantity(e.target.value)} 
+                className="h-16 text-center text-3xl font-black rounded-2xl border-none shadow-inner bg-white flex-1" 
+              />
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-14 w-14 rounded-2xl border-2 hover:bg-emerald-50 hover:text-emerald-600 shadow-sm"
+                onClick={() => setQuantity(prev => {
+                  const val = Number(prev) || 0;
+                  return String(val + 1);
+                })}
+              >
+                <Plus className="w-6 h-6" />
+              </Button>
+            </div>
           </div>
         </div>
         <AlertDialogFooter className="gap-2">

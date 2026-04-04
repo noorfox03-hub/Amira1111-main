@@ -35,7 +35,7 @@ CREATE TABLE public.inventory (
 -- 4. Transactions (History Log)
 CREATE TABLE public.transactions (
     id SERIAL PRIMARY KEY,
-    type TEXT CHECK (type IN ('إضافة', 'صرف', 'تحويل')), 
+    type TEXT CHECK (type IN ('إضافة', 'صرف', 'تحويل', 'تسوية')), 
     from_warehouse_id INTEGER REFERENCES public.warehouses(id),
     to_warehouse_id INTEGER REFERENCES public.warehouses(id),
     item_id BIGINT REFERENCES public.items(id),
@@ -111,22 +111,24 @@ UPDATE public.items SET conversion_factor = 50 WHERE unit_type = 'BOX';
 DROP FUNCTION IF EXISTS public.dispense_item_v1(uuid, uuid, integer, numeric, text);
 DROP FUNCTION IF EXISTS public.dispense_item_v1(integer, bigint, numeric, numeric, text);
 
--- 1. Dispense Item
+-- 1. Dispense Item (Updated with Type, Date and Note)
 CREATE OR REPLACE FUNCTION public.dispense_item_v1(
   p_warehouse_id INTEGER,
   p_item_id BIGINT,
   p_qty NUMERIC,
   p_total_cost NUMERIC,
   p_to_warehouse_id INTEGER DEFAULT NULL,
-  p_note TEXT DEFAULT NULL
+  p_note TEXT DEFAULT NULL,
+  p_type TEXT DEFAULT 'صرف',
+  p_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 ) RETURNS VOID AS $$
 BEGIN
   UPDATE public.inventory 
   SET quantity = quantity - p_qty
   WHERE warehouse_id = p_warehouse_id AND item_id = p_item_id;
 
-  INSERT INTO public.transactions (type, from_warehouse_id, to_warehouse_id, item_id, quantity, total_price, note)
-  VALUES ('صرف', p_warehouse_id, p_to_warehouse_id, p_item_id, p_qty, p_total_cost, p_note);
+  INSERT INTO public.transactions (type, from_warehouse_id, to_warehouse_id, item_id, quantity, total_price, note, created_at)
+  VALUES (p_type, p_warehouse_id, p_to_warehouse_id, p_item_id, p_qty, p_total_cost, p_note, p_date);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -134,15 +136,15 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS public.transfer_item_v1(uuid, uuid, uuid, integer, numeric, text);
 DROP FUNCTION IF EXISTS public.transfer_item_v1(integer, integer, bigint, numeric, numeric, text);
 
--- 2. Transfer Item
+-- 2. Transfer Item (Updated with Date and Note)
 CREATE OR REPLACE FUNCTION public.transfer_item_v1(
-
   p_from_warehouse_id INTEGER,
   p_to_warehouse_id INTEGER,
   p_item_id BIGINT,
   p_qty NUMERIC,
   p_total_cost NUMERIC,
-  p_note TEXT DEFAULT NULL
+  p_note TEXT DEFAULT NULL,
+  p_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 ) RETURNS VOID AS $$
 BEGIN
   UPDATE public.inventory 
@@ -154,8 +156,8 @@ BEGIN
   ON CONFLICT (warehouse_id, item_id) 
   DO UPDATE SET quantity = public.inventory.quantity + p_qty;
 
-  INSERT INTO public.transactions (type, from_warehouse_id, to_warehouse_id, item_id, quantity, total_price, note)
-  VALUES ('تحويل', p_from_warehouse_id, p_to_warehouse_id, p_item_id, p_qty, p_total_cost, p_note);
+  INSERT INTO public.transactions (type, from_warehouse_id, to_warehouse_id, item_id, quantity, total_price, note, created_at)
+  VALUES ('تحويل', p_from_warehouse_id, p_to_warehouse_id, p_item_id, p_qty, p_total_cost, p_note, p_date);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -163,14 +165,14 @@ $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS public.add_stock_v1(uuid, uuid, integer, numeric, text);
 DROP FUNCTION IF EXISTS public.add_stock_v1(integer, bigint, numeric, numeric, text);
 
--- 3. Add Stock
+-- 3. Add Stock (Updated with Date and Note)
 CREATE OR REPLACE FUNCTION public.add_stock_v1(
-
   p_warehouse_id INTEGER,
   p_item_id BIGINT,
   p_qty NUMERIC,
   p_total_cost NUMERIC,
-  p_note TEXT DEFAULT NULL
+  p_note TEXT DEFAULT NULL,
+  p_date TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 ) RETURNS VOID AS $$
 BEGIN
   INSERT INTO public.inventory (warehouse_id, item_id, quantity)
@@ -178,8 +180,8 @@ BEGIN
   ON CONFLICT (warehouse_id, item_id) 
   DO UPDATE SET quantity = public.inventory.quantity + p_qty;
 
-  INSERT INTO public.transactions (type, to_warehouse_id, item_id, quantity, total_price, note)
-  VALUES ('إضافة', p_warehouse_id, p_item_id, p_qty, p_total_cost, p_note);
+  INSERT INTO public.transactions (type, to_warehouse_id, item_id, quantity, total_price, note, created_at)
+  VALUES ('إضافة', p_warehouse_id, p_item_id, p_qty, p_total_cost, p_note, p_date);
 END;
 $$ LANGUAGE plpgsql;
 
