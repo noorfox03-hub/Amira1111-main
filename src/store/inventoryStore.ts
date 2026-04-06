@@ -48,6 +48,8 @@ interface InventoryStore {
   // Auth Actions
   isLoggedIn: boolean;
   setLoggedIn: (status: boolean) => void;
+  lastVisitedPath: string;
+  setLastVisitedPath: (path: string) => void;
 }
 
 export const useInventoryStore = create<InventoryStore>((set, get): InventoryStore => ({
@@ -587,5 +589,11 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
   setLoggedIn: (status: boolean) => {
     localStorage.setItem('isLoggedIn', String(status));
     set({ isLoggedIn: status });
+  },
+  lastVisitedPath: localStorage.getItem('lastVisitedPath') || '/dashboard',
+  setLastVisitedPath: (path: string) => {
+    if (path === '/' || path === '/login') return;
+    localStorage.setItem('lastVisitedPath', path);
+    set({ lastVisitedPath: path });
   }
 }));

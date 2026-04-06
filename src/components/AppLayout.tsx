@@ -10,16 +10,28 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isLoggedIn } = useInventoryStore();
+  const { isLoggedIn, lastVisitedPath, setLastVisitedPath } = useInventoryStore();
   
   const currentNavItem = navItems.find(item => item.to === location.pathname);
   const isPublicPage = location.pathname === '/' || location.pathname === '/login';
 
   useEffect(() => {
+    // 1. If NOT logged in and on a protected page, save the path and redirect to login
     if (!isLoggedIn && !isPublicPage) {
+      setLastVisitedPath(location.pathname);
       navigate('/login');
     }
-  }, [isLoggedIn, isPublicPage, navigate]);
+    
+    // 2. If LOGGED in and on a public page, redirect to the last visited path
+    if (isLoggedIn && isPublicPage) {
+      navigate(lastVisitedPath || '/dashboard');
+    }
+
+    // 3. If LOGGED in and on a protected page, keep updating the last visited path
+    if (isLoggedIn && !isPublicPage) {
+      setLastVisitedPath(location.pathname);
+    }
+  }, [isLoggedIn, isPublicPage, navigate, location.pathname, lastVisitedPath, setLastVisitedPath]);
 
   return (
     <div className="flex min-h-screen bg-background font-sans print:h-auto print:overflow-visible print:block" dir="rtl">

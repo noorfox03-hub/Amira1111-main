@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ItemSearchField } from '@/components/ItemSearchField';
 import { format, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,13 +32,21 @@ export default function DispensePage() {
   const clinics = warehouses.filter(w => w.type === 'clinic');
   const mainWarehouse = warehouses.find(w => w.type === 'main');
 
-  const [selectedClinic, setSelectedClinic] = useState('');
-  const [selectedItem, setSelectedItem] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [unit, setUnit] = useState<'piece' | 'box'>('piece');
+  const [selectedClinic, setSelectedClinic] = useState(() => localStorage.getItem('dispense_clinic') || '');
+  const [selectedItem, setSelectedItem] = useState(() => localStorage.getItem('dispense_item') || '');
+  const [quantity, setQuantity] = useState(() => localStorage.getItem('dispense_qty') || '');
+  const [unit, setUnit] = useState<'piece' | 'box'>(() => (localStorage.getItem('dispense_unit') as any) || 'piece');
   const [submitting, setSubmitting] = useState(false);
   const [returnTxId, setReturnTxId] = useState<string | null>(null);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+
+  // Iron Memory: Save state to localStorage as it changes
+  useEffect(() => {
+    localStorage.setItem('dispense_clinic', selectedClinic);
+    localStorage.setItem('dispense_item', selectedItem);
+    localStorage.setItem('dispense_qty', quantity);
+    localStorage.setItem('dispense_unit', unit);
+  }, [selectedClinic, selectedItem, quantity, unit]);
 
   const selectedItemData = items.find(i => i.id === selectedItem);
   const currentStock = selectedItem && mainWarehouse ? getItemStock(mainWarehouse.id, selectedItem) : 0;
@@ -74,6 +83,9 @@ export default function DispensePage() {
       toast({ title: 'تم الصرف بنجاح', description: result.message });
       setSelectedItem('');
       setQuantity('');
+      // Clear persistence on success
+      localStorage.removeItem('dispense_item');
+      localStorage.removeItem('dispense_qty');
     } else {
       toast({ title: 'خطأ', description: result.message, variant: 'destructive' });
     }

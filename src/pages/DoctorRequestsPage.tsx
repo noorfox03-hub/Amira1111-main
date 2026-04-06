@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -29,11 +29,26 @@ interface RequestItem {
 
 export default function DoctorRequestsPage() {
   const { items, getItemStock, warehouses } = useInventoryStore();
-  const [requestDate, setRequestDate] = useState(new Date().toISOString().split('T')[0]);
-  const [requestItems, setRequestItems] = useState<RequestItem[]>([
-    { id: crypto.randomUUID(), itemName: "", quantityNeeded: "", quantityAvailable: "" }
-  ]);
+  
+  // Iron Memory: Load state from localStorage on init
+  const [requestDate, setRequestDate] = useState(() => 
+    localStorage.getItem('dr_req_date') || new Date().toISOString().split('T')[0]
+  );
+  
+  const [requestItems, setRequestItems] = useState<RequestItem[]>(() => {
+    const saved = localStorage.getItem('dr_req_items');
+    return saved ? JSON.parse(saved) : [
+      { id: crypto.randomUUID(), itemName: "", quantityNeeded: "", quantityAvailable: "" }
+    ];
+  });
+
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  // Iron Memory: Save state to localStorage as it changes
+  useEffect(() => {
+    localStorage.setItem('dr_req_date', requestDate);
+    localStorage.setItem('dr_req_items', JSON.stringify(requestItems));
+  }, [requestDate, requestItems]);
 
   const mainWarehouse = warehouses.find(w => w.type === 'main');
 

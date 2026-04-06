@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { User, Lock, ArrowRight } from 'lucide-react';
 
 const LoginPage = () => {
-    const { setLoggedIn } = useInventoryStore();
+    const { setLoggedIn, lastVisitedPath } = useInventoryStore();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const LoginPage = () => {
         if (username === 'amira' && password === 'admin') {
             setLoggedIn(true);
             toast.success('مرحباً أستاذة أميرة، تم تسجيل الدخول بنجاح');
-            navigate('/dashboard');
+            navigate(lastVisitedPath || '/dashboard');
         } else {
             toast.error('خطأ في اسم المستخدم أو كلمة المرور');
         }
