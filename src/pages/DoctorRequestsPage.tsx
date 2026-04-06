@@ -117,6 +117,9 @@ export default function DoctorRequestsPage() {
           </h1>
           <p className="text-muted-foreground font-medium mt-1">إنشاء قائمة طلبات يدوية منظمة للطباعة</p>
         </div>
+        <div className="hidden lg:block no-print">
+          <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain" />
+        </div>
         <div className="flex gap-3">
           <Button 
             onClick={addRow} 
@@ -143,6 +146,7 @@ export default function DoctorRequestsPage() {
             <p className="font-black text-2xl text-primary">نظام إدارة مخازن العيادات</p>
             <p className="text-sm font-bold opacity-70">شركة المجموعات الطبية</p>
           </div>
+          <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain" />
           <div className="bg-primary/10 p-4 rounded-3xl border border-primary/20">
             <ClipboardList className="w-10 h-10 text-primary" />
           </div>

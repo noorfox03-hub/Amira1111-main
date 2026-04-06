@@ -421,6 +421,9 @@ export default function ReportsPage() {
           </h1>
           <p className="text-muted-foreground mt-1">المتابعة المالية وحركة الأصناف لجميع المواقع</p>
         </div>
+        <div className="hidden lg:block no-print">
+          <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain" />
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => fetchData()}>تحديث</Button>
           <Button variant="default" size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={handlePrintComprehensive}>

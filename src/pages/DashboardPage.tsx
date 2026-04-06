@@ -100,6 +100,9 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-black tracking-tight text-slate-900">لوحة التحكم</h1>
           <p className="text-muted-foreground mt-1 font-medium">نظرة استراتيجية على استهلاك المركز والعيادات</p>
         </div>
+        <div className="hidden lg:block no-print">
+          <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain" />
+        </div>
         <Button onClick={() => window.print()} variant="outline" className="gap-2 no-print h-11 px-6 rounded-xl border-slate-200 shadow-sm hover:bg-slate-50 transition-all">
           <Printer className="w-4 h-4 text-slate-500" />
           <span className="font-bold">طباعة التقرير الفوري</span>
