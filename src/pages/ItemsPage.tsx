@@ -380,8 +380,8 @@ export default function ItemsPage() {
                 <Input className="h-10 border-2 rounded-xl font-black text-center" value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label className="font-black text-slate-500 mr-1 text-xs">قطع/الكرتونة</Label>
-                <Input type="number" className="h-10 border-2 rounded-xl font-black text-center" value={form.piecesPerCarton} onChange={e => setForm(f => ({ ...f, piecesPerCarton: e.target.value }))} />
+                <Label className="font-black text-slate-500 mr-1 text-xs">الحد الأدنى</Label>
+                <Input type="number" className="h-10 border-2 rounded-xl font-black text-center" value={form.minLimit} onChange={e => setForm(f => ({ ...f, minLimit: e.target.value }))} />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
