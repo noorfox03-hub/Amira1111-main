@@ -3,7 +3,7 @@ import { useInventoryStore } from '@/store/inventoryStore';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
-import { Plus, Minus, Printer, TrendingUp, DollarSign, Calendar, RotateCcw, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, Minus, Printer, TrendingUp, DollarSign, Calendar, RotateCcw, RefreshCw, Trash2, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -312,7 +312,7 @@ const WarehouseReportSection = ({
 }
 
 export default function ReportsPage() {
-  const { warehouses, items, transactions, getItemStock, fetchData, isLoading } = useInventoryStore();
+  const { warehouses, items, transactions, getItemStock, fetchData, isLoading, backupData } = useInventoryStore();
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isComprehensive, setIsComprehensive] = useState(false);
@@ -477,6 +477,18 @@ export default function ReportsPage() {
                 }}
               >
                 ١. حفظ الحالة المرجعية (قبل البدء)
+              </Button>
+
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="h-14 text-lg font-black border-2 border-emerald-200 bg-emerald-50 text-emerald-700 shadow-sm transition-all active:scale-95"
+                onClick={() => {
+                  backupData();
+                  toast.success('تم تصدير نسخة احتياطية للبيانات بنجاح');
+                }}
+              >
+                نسخ احتياطي شامل (لجهازك)
               </Button>
 
               <AlertDialog>

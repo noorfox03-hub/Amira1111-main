@@ -44,6 +44,7 @@ interface InventoryStore {
   deleteTransaction: (transactionId: string) => Promise<{ success: boolean; message: string }>;
   saveSnapshot: () => Promise<void>;
   restoreFromSnapshot: () => Promise<{ success: boolean; message: string }>;
+  backupData: () => void;
 
   // Auth Actions
   isLoggedIn: boolean;
@@ -582,6 +583,28 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
       set({ isLoading: false });
       return { success: false, message: err.message || 'حدث خطأ أثناء المسح' };
     }
+  },
+
+  backupData: () => {
+    const { items, warehouses, inventory, transactions } = get();
+    const backup = {
+      version: '2.0',
+      timestamp: new Date().toISOString(),
+      items,
+      warehouses,
+      inventory,
+      transactions
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `topal_inventory_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   },
 
   // Auth Implementation

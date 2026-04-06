@@ -1,5 +1,4 @@
 import React, { useMemo, ReactNode } from 'react';
-import { useInventoryStore } from '@/store/inventoryStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,20 +13,23 @@ import {
   Cell,
 } from 'recharts';
 import {
-  Package,
-  Warehouse,
-  AlertTriangle,
-  TrendingDown,
   ArrowLeftRight,
   Printer,
   TrendingUp,
   Activity,
+  Database,
+  Warehouse,
+  Package,
+  AlertTriangle,
+  TrendingDown,
 } from 'lucide-react';
+import { useInventoryStore } from '@/store/inventoryStore';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 
 export default function DashboardPage() {
-  const { items, warehouses, inventory, transactions, getLowStockItems, isLoading } = useInventoryStore();
+  const { items, warehouses, inventory, transactions, getLowStockItems, isLoading, backupData } = useInventoryStore();
 
   // Optimized Calculations
   const stats = useMemo(() => {
@@ -103,10 +105,23 @@ export default function DashboardPage() {
         <div className="hidden lg:block no-print">
           <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain" />
         </div>
-        <Button onClick={() => window.print()} variant="outline" className="gap-2 no-print h-11 px-6 rounded-xl border-slate-200 shadow-sm hover:bg-slate-50 transition-all">
-          <Printer className="w-4 h-4 text-slate-500" />
-          <span className="font-bold">طباعة التقرير الفوري</span>
-        </Button>
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <Button 
+            onClick={() => {
+              backupData();
+              toast.success('تم تصدير نسخة احتياطية للبيانات بنجاح');
+            }} 
+            variant="outline" 
+            className="flex-1 md:flex-none gap-2 no-print h-11 px-6 rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-700 shadow-sm hover:bg-emerald-100 transition-all"
+          >
+            <Database className="w-4 h-4" />
+            <span className="font-bold">نسخ احتياطي شامل</span>
+          </Button>
+          <Button onClick={() => window.print()} variant="outline" className="flex-1 md:flex-none gap-2 no-print h-11 px-6 rounded-xl border-slate-200 shadow-sm hover:bg-slate-50 transition-all">
+            <Printer className="w-4 h-4 text-slate-500" />
+            <span className="font-bold">طباعة التقرير الفوري</span>
+          </Button>
+        </div>
       </div>
 
       {/* Print-only Header */}
