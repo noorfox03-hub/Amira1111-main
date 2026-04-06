@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useInventoryStore } from '@/store/inventoryStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 import { User, Lock, ArrowRight } from 'lucide-react';
 
 const LoginPage = () => {
+    const { setLoggedIn } = useInventoryStore();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -15,6 +17,7 @@ const LoginPage = () => {
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         if (username === 'amira' && password === 'admin') {
+            setLoggedIn(true);
             toast.success('مرحباً أستاذة أميرة، تم تسجيل الدخول بنجاح');
             navigate('/dashboard');
         } else {
@@ -46,7 +49,7 @@ const LoginPage = () => {
                         أهلاً بكِ في نظام الإدارة الخاص بكِ
                     </CardDescription>
                 </CardHeader>
-                <form onSubmit={handleLogin}>
+                <form onSubmit={handleLogin} autoComplete="off">
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username" className="text-rose-900 font-medium">اسم المستخدم</Label>
@@ -58,6 +61,7 @@ const LoginPage = () => {
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="bg-white/50 border-rose-100 pr-10 focus:ring-rose-500 focus:border-rose-500"
                                     required
+                                    autoComplete="off"
                                 />
                             </div>
                         </div>
@@ -72,6 +76,7 @@ const LoginPage = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="bg-white/50 border-rose-100 pr-10 focus:ring-rose-500 focus:border-rose-500"
                                     required
+                                    autoComplete="new-password"
                                 />
                             </div>
                         </div>

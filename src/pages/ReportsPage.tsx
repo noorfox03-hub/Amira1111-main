@@ -133,6 +133,9 @@ const WarehouseReportSection = ({
     <div className="space-y-8 py-8 break-after-page print:pt-0">
       {/* Official Print Header */}
       <div className="hidden print:block text-center border-b-2 border-primary pb-6 mb-8">
+        <div className="flex justify-center mb-4">
+          <img src="/logo.png" alt="Logo" className="h-20 w-auto object-contain" />
+        </div>
         <h1 className="text-3xl font-extrabold text-primary mb-1">نظام إدارة المخازن</h1>
         <p className="text-lg font-medium italic">تقرير متابعة المخزون والاستهلاك</p>
         <div className="flex justify-center gap-6 mt-3 text-[12px] font-bold">
@@ -604,6 +607,9 @@ export default function ReportsPage() {
 
         {/* Official Comprehensive Print Header */}
         <div className="hidden print:block text-center border-b-4 border-double border-primary pb-10 mb-12">
+          <div className="flex justify-center mb-6">
+            <img src="/logo.png" alt="Logo" className="h-24 w-auto object-contain" />
+          </div>
           <h1 className="text-4xl font-black text-primary mb-2">نظام إدارة مخازن العيادات</h1>
           <p className="text-xl font-bold italic text-muted-foreground">
             {isSummaryView ? "ملخص تكاليف الاستهلاك الشهري" : "التقرير الشامل وتدقيق التكاليف الشهرية"}

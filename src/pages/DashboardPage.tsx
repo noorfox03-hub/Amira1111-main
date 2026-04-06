@@ -108,6 +108,9 @@ export default function DashboardPage() {
 
       {/* Print-only Header */}
       <div className="hidden print:block text-center border-b-[3px] border-sky-600 pb-8 mb-10">
+        <div className="flex justify-center mb-6">
+          <img src="/logo.png" alt="Logo" className="h-28 w-auto object-contain" />
+        </div>
         <h1 className="text-5xl font-black text-slate-900 mb-2">مجمع توبال لطب الأسنان</h1>
         <p className="text-2xl text-slate-500 font-bold uppercase tracking-widest">Topal Dental Center - Inventory Report</p>
         <div className="mt-6 flex justify-center gap-12 text-lg font-medium">

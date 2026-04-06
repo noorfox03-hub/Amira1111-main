@@ -44,6 +44,10 @@ interface InventoryStore {
   deleteTransaction: (transactionId: string) => Promise<{ success: boolean; message: string }>;
   saveSnapshot: () => Promise<void>;
   restoreFromSnapshot: () => Promise<{ success: boolean; message: string }>;
+
+  // Auth Actions
+  isLoggedIn: boolean;
+  setLoggedIn: (status: boolean) => void;
 }
 
 export const useInventoryStore = create<InventoryStore>((set, get): InventoryStore => ({
@@ -576,5 +580,12 @@ export const useInventoryStore = create<InventoryStore>((set, get): InventorySto
       set({ isLoading: false });
       return { success: false, message: err.message || 'حدث خطأ أثناء المسح' };
     }
+  },
+
+  // Auth Implementation
+  isLoggedIn: localStorage.getItem('isLoggedIn') === 'true',
+  setLoggedIn: (status: boolean) => {
+    localStorage.setItem('isLoggedIn', String(status));
+    set({ isLoggedIn: status });
   }
 }));

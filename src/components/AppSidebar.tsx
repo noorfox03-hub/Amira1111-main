@@ -10,7 +10,10 @@ import {
   X,
   TriangleAlert,
   ClipboardList,
+  LogOut,
 } from 'lucide-react';
+import { useInventoryStore } from '@/store/inventoryStore';
+import { useNavigate } from 'react-router-dom';
 
 export const navItems = [
   { to: '/dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -26,6 +29,14 @@ export const navItems = [
 
 export default function AppSidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { setLoggedIn } = useInventoryStore();
+
+  const handleLogout = () => {
+    setLoggedIn(false);
+    navigate('/login');
+    if (onClose) onClose();
+  };
 
   return (
     <aside className={cn(
@@ -75,7 +86,15 @@ export default function AppSidebar({ isOpen, onClose }: { isOpen?: boolean; onCl
           );
         })}
       </nav>
-      <div className="p-4 border-t border-sidebar-border space-y-3">
+      <div className="p-4 border-t border-sidebar-border space-y-4">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-4 px-5 py-4 rounded-2xl text-[15px] font-bold text-rose-600 hover:bg-rose-50 transition-all duration-300 group"
+        >
+          <LogOut className="w-6 h-6 text-rose-400 group-hover:rotate-12 transition-transform" />
+          تسجيل الخروج
+        </button>
+
         <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 rounded-xl border border-green-500/20">
           <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
           <span className="text-[10px] text-green-600 font-black">اتصال مباشر (Live)</span>

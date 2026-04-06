@@ -1,14 +1,25 @@
 import React, { useState, ReactNode } from 'react';
 import AppSidebar, { navItems } from './AppSidebar';
 import { Menu } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useInventoryStore } from '@/store/inventoryStore';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isLoggedIn } = useInventoryStore();
+  
   const currentNavItem = navItems.find(item => item.to === location.pathname);
   const isPublicPage = location.pathname === '/' || location.pathname === '/login';
+
+  useEffect(() => {
+    if (!isLoggedIn && !isPublicPage) {
+      navigate('/login');
+    }
+  }, [isLoggedIn, isPublicPage, navigate]);
 
   return (
     <div className="flex min-h-screen bg-background font-sans print:h-auto print:overflow-visible print:block" dir="rtl">
