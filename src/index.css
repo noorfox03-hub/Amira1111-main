@@ -94,15 +94,18 @@
     overflow-x: auto;
   }
 
-  .comprehensive-report-container {
+  .comprehensive-report-container,
+  .inventory-report-container {
     display: none !important;
   }
 
-  body.is-printing-comprehensive .comprehensive-report-container {
+  body.is-printing-comprehensive .comprehensive-report-container,
+  body.is-printing-items .inventory-report-container {
     display: block !important;
   }
 
-  body.is-printing-comprehensive .normal-report-view {
+  body.is-printing-comprehensive .normal-report-view,
+  body.is-printing-items .normal-items-view {
     display: none !important;
   }
 
